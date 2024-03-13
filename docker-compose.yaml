@@ -1,0 +1,32 @@
+version: '3.9'
+services:
+  app:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile # Ensure this Dockerfile is inside the ./backend directory
+    ports:
+      - "8080:8080"
+    env_file:
+      - ./backend/.env
+    environment:
+      - PORT=8080
+    depends_on:
+      - staging_db
+      - test_db
+
+  staging_db:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: userstaging
+      POSTGRES_PASSWORD: passwordstaging
+      POSTGRES_DB: postgres-staging
+    ports:
+      - "5432:5432"
+  test_db:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: usertest
+      POSTGRES_PASSWORD: passwordtest
+      POSTGRES_DB: postgres-test
+    ports:
+      - "5433:5432"

@@ -1,0 +1,14 @@
+{
+  "name": "varcode-cats",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "docker:build": "docker-compose build",
+    "docker:start": "docker-compose up -d",
+    "docker:stop": "docker-compose down"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
