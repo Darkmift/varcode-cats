@@ -1,13 +1,16 @@
 import { plainToInstance } from 'class-transformer';
-import { IsNumber, validateSync } from 'class-validator';
+import { IsNumber, IsString, validateSync } from 'class-validator';
 
-class EnvironmentVariables {
+export class RootConfig {
   @IsNumber()
   PORT: number;
+  @IsString()
+  FRONTEND_ORIGIN: string;
+
 }
 
 export function validate(config: Record<string, unknown>) {
-  const validatedConfig = plainToInstance(EnvironmentVariables, config, {
+  const validatedConfig = plainToInstance(RootConfig, config, {
     enableImplicitConversion: true,
   });
   const errors = validateSync(validatedConfig, {
