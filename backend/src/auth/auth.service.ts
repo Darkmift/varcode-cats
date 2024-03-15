@@ -1,14 +1,17 @@
 import { Injectable, Logger } from '@nestjs/common';
-
-export interface ILoginParams {
-  username: string;
-  password: string;
-}
+import { ILoginParams } from './auth.types';
+import { LoginResultDto } from './dto/auth.index';
 
 @Injectable()
 export class AuthService {
-  login(user: ILoginParams) {
+  async login(user: ILoginParams): Promise<LoginResultDto> {
     Logger.log('This action logs a user in', user);
-    return 'This action logs a user in';
+    return {
+      token: 'token',
+      role: 'user',
+      username: user.username,
+      lastname: 'lastname',
+      firstname: 'firstname',
+    };
   }
 }

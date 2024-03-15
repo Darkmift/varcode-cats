@@ -1,34 +1,41 @@
 import { Injectable } from '@nestjs/common';
+import {
+  CatDTO,
+  PaginationParamsDTO,
+  PaginationResultDTO,
+} from './dto/cats.index';
+import { IVoteForCatParams } from './types/cats.type';
 
-export interface PaginationParams {
-  page: number;
-  limit: number;
-}
-
-export interface VoteForCatParams {
-  catId: string;
-  userId: string;
-}
+// temp will be replaced with DB logic
+import { mockCats } from './cats.service.spec';
 
 @Injectable()
 export class CatsService {
-  getTopFive() {
-    return 'topCats';
+  async getTopFive(): Promise<CatDTO[]> {
+    return mockCats;
   }
 
-  getPaginated({ page, limit }: PaginationParams) {
-    return 'paginatedCats';
+  async getPaginated({
+    page,
+    limit,
+  }: PaginationParamsDTO): Promise<PaginationResultDTO> {
+    return {
+      items: [],
+      hasNext: false,
+      total: 0,
+      hasPrev: false,
+    };
   }
 
-  getById(id: string) {
-    return 'catById';
+  async getById(id: string): Promise<CatDTO> {
+    return mockCats[0];
   }
 
-  addVoteForCat({ catId, userId }: VoteForCatParams) {
+  addVoteForCat({ catId, userId }: IVoteForCatParams) {
     return 'votedForCat';
   }
 
-  removeVoteForCat({ catId, userId }: VoteForCatParams) {
+  removeVoteForCat({ catId, userId }: IVoteForCatParams) {
     return 'votedForCat';
   }
 }

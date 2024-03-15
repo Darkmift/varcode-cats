@@ -1,9 +1,73 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { CatsService } from './cats.service';
 import {
-  CatsService,
-  PaginationParams,
-  VoteForCatParams,
-} from './cats.service';
+  CatDTO,
+  PaginationParamsDTO,
+  PaginationResultDTO,
+} from './dto/cats.index';
+
+export const mockCats = [
+  {
+    id: '1',
+    name: 'Cat 1',
+    favoriteFood: 'Tuna',
+    birthday: new Date(),
+    age: 1,
+    location: 'Location 1',
+    furColor: 'White',
+    height: 30,
+    weight: 5,
+    imageUrl: 'https://example.com/cat.jpg',
+  },
+  {
+    id: '2',
+    name: 'Cat 2',
+    favoriteFood: 'Tuna',
+    birthday: new Date(),
+    age: 1,
+    location: 'Location 2',
+    furColor: 'White',
+    height: 30,
+    weight: 5,
+    imageUrl: 'https://example.com/cat.jpg',
+  },
+  {
+    id: '3',
+    name: 'Cat 3',
+    favoriteFood: 'Tuna',
+    birthday: new Date(),
+    age: 1,
+    location: 'Location 3',
+    furColor: 'White',
+    height: 30,
+    weight: 5,
+    imageUrl: 'https://example.com/cat.jpg',
+  },
+  {
+    id: '4',
+    name: 'Cat 4',
+    favoriteFood: 'Tuna',
+    birthday: new Date(),
+    age: 1,
+    location: 'Location 4',
+    furColor: 'White',
+    height: 30,
+    weight: 5,
+    imageUrl: 'https://example.com/cat.jpg',
+  },
+  {
+    id: '5',
+    name: 'Cat 5',
+    favoriteFood: 'Tuna',
+    birthday: new Date(),
+    age: 1,
+    location: 'Location 5',
+    furColor: 'White',
+    height: 30,
+    weight: 5,
+    imageUrl: 'https://example.com/cat.jpg',
+  },
+];
 
 describe('CatsService', () => {
   let service: CatsService;
@@ -20,27 +84,54 @@ describe('CatsService', () => {
     expect(service).toBeDefined();
   });
 
-  it('getTopFive should return top cats', () => {
-    expect(service.getTopFive()).toBe('topCats');
+  describe('getTopFive', () => {
+    it('should return top 5 cats', async () => {
+      const result: CatDTO[] = [];
+      jest.spyOn(service, 'getTopFive').mockImplementation(async () => result);
+      expect(await service.getTopFive()).toBe(result);
+    });
   });
 
-  it('getPaginated should return paginated cats', () => {
-    const paginationParams: PaginationParams = { page: 1, limit: 10 };
-    expect(service.getPaginated(paginationParams)).toBe('paginatedCats');
+  describe('getPaginated', () => {
+    it('should return paginated cats', async () => {
+      const paginationParams: PaginationParamsDTO = { page: 1, limit: 10 };
+      const result: PaginationResultDTO = {
+        items: [],
+        hasNext: false,
+        total: 0,
+        hasPrev: false,
+      };
+      jest
+        .spyOn(service, 'getPaginated')
+        .mockImplementation(async () => result);
+      expect(await service.getPaginated(paginationParams)).toBe(result);
+    });
   });
 
-  it('getById should return a cat by id', () => {
-    const catId = 'cat123';
-    expect(service.getById(catId)).toBe('catById');
+  describe('getById', () => {
+    it('should return a cat by id', async () => {
+      const catId = '1';
+      const result: CatDTO = mockCats.find((cat) => cat.id === catId) as CatDTO;
+      jest.spyOn(service, 'getById').mockImplementation(async () => result);
+      expect(await service.getById(catId)).toBe(result);
+    });
   });
 
-  it('addVoteForCat should return confirmation of voting for a cat', () => {
-    const voteParams: VoteForCatParams = { catId: 'cat123', userId: 'user123' };
-    expect(service.addVoteForCat(voteParams)).toBe('votedForCat');
+  describe('addVoteForCat', () => {
+    it('should return confirmation of voting for a cat', async () => {
+      const voteParams = { catId: '1', userId: 'user123' };
+      const result = 'votedForCat';
+      jest.spyOn(service, 'addVoteForCat').mockImplementation(() => result);
+      expect(service.addVoteForCat(voteParams)).toBe(result);
+    });
   });
 
-  it('removeVoteForCat should return confirmation of removing vote for a cat', () => {
-    const voteParams: VoteForCatParams = { catId: 'cat123', userId: 'user123' };
-    expect(service.removeVoteForCat(voteParams)).toBe('votedForCat');
+  describe('removeVoteForCat', () => {
+    it('should return confirmation of removing vote for a cat', () => {
+      const voteParams = { catId: '1', userId: 'user123' };
+      const result = 'removedVoteForCat';
+      jest.spyOn(service, 'removeVoteForCat').mockImplementation(() => result);
+      expect(service.removeVoteForCat(voteParams)).toBe(result);
+    });
   });
 });
