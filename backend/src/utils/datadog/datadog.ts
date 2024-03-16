@@ -45,8 +45,8 @@ export class DatadogLogger extends ConsoleLogger {
     const logEntry = {
       ddsource: 'nestjs',
       ddtags: `level:${level},context:${context}`,
-      hostname: 'your-app-hostname', // Optional
-      service: 'your-service-name',
+      hostname: 'cats-app', // Optional
+      service: 'cats-app-service',
       message: trace ? `${message} - Trace: ${trace}` : message,
       // Additional metadata can be included here
     };
