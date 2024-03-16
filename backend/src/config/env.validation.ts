@@ -34,6 +34,8 @@ export class RootConfig {
   POSTGRES_PORT: number;
   @IsString()
   BCRYPT_SECRET: string;
+  @IsString()
+  JWT_SECRET: string;
 }
 
 export function validate(config: Record<string, unknown>) {
