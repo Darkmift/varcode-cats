@@ -1,10 +1,10 @@
 import { ConsoleLogger, Injectable } from '@nestjs/common';
-import { client, v1 } from '@datadog/datadog-api-client';
+import { client, v2 } from '@datadog/datadog-api-client';
 import { RootConfig } from '@/config/env.validation';
 
 @Injectable()
 export class DatadogLogger extends ConsoleLogger {
-  private datadogLogger;
+  private datadogLogger: v2.LogsApi;
 
   constructor(private readonly rootConfig: RootConfig) {
     super();
@@ -18,7 +18,7 @@ export class DatadogLogger extends ConsoleLogger {
     configuration.setServerVariables({
       site: 'datadoghq.eu',
     });
-    const apiInstance = new v1.LogsApi(configuration);
+    const apiInstance = new v2.LogsApi(configuration);
 
     this.datadogLogger = apiInstance;
   }
@@ -42,13 +42,22 @@ export class DatadogLogger extends ConsoleLogger {
     trace?: string,
   ) {
     // Prepare the log entry
+
+    const payload = {
+      message,
+      trace,
+      context,
+    };
+
     const logEntry = {
       ddsource: 'nestjs',
-      ddtags: `level:${level},context:${context}`,
-      hostname: 'cats-app', // Optional
+      ddtags: `level:${level}`,
+      hostname: 'cats-app',
       service: 'cats-app-service',
-      message: trace ? `${message} - Trace: ${trace}` : message,
-      // Additional metadata can be included here
+      message: JSON.stringify(payload),
+      additionalProperties: {
+        metada: JSON.stringify(payload),
+      },
     };
 
     // Send the log to Datadog
@@ -58,5 +67,15 @@ export class DatadogLogger extends ConsoleLogger {
         // console.log('Log sent to Datadog', data)
       })
       .catch((error) => console.error('Failed to send log to Datadog', error));
+  }
+}
+
+//a fn that tries to json.parse a string and returns the string if it fails
+function tryParseJSON(jsonString: string) {
+  try {
+    const data = JSON.parse(jsonString);
+    return data;
+  } catch (e) {
+    return jsonString;
   }
 }
