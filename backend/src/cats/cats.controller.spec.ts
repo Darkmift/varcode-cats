@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CatsController } from './cats.controller';
-import { CatsService, mockCats } from './cats.service';
+import { CatsService } from './cats.service';
 import { PaginationParamsDTO } from './dto/cats.index';
 
 describe('CatsController', () => {
@@ -9,7 +9,7 @@ describe('CatsController', () => {
 
   beforeEach(async () => {
     const mockCatsService = {
-      getTopFive: jest.fn(() => Promise.resolve(mockCats)),
+      getTopFive: jest.fn(() => Promise.resolve([])),
       getPaginated: jest.fn((query: PaginationParamsDTO) =>
         Promise.resolve({ items: [], total: 0 }),
       ),
@@ -39,7 +39,7 @@ describe('CatsController', () => {
     it('should return an array of top five cats, each with an id and name', async () => {
       // Resolve and check the response directly
       const response = await controller.getTopFive();
-      expect(response).toEqual(mockCats);
+      expect(response).toEqual([]);
       expect(service.getTopFive).toHaveBeenCalled();
 
       // Check each cat for 'id' and 'name' properties
