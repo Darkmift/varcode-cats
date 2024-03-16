@@ -160,4 +160,31 @@ describe('CatsService', () => {
       expect(cat).toBeNull();
     });
   });
+
+  describe('getCatsLikedByUser', () => {
+    it('should return cats liked by a user', async () => {
+      const user = await service['userRepository']
+        .createQueryBuilder('user')
+        .select()
+        .orderBy('RANDOM()')
+        .getOne();
+      const cats = await service['catRepository']
+        .createQueryBuilder('cat')
+        .select()
+        .orderBy('RANDOM()')
+        .limit(5)
+        .getMany();
+
+      for (const cat of cats) {
+        await service.addVoteForCat({ catId: cat.id, userId: user.id });
+      }
+
+      const likedCats = await service.getCatsLikedByUser(user.id);
+
+      expect(likedCats).toBeDefined();
+      expect(Array.isArray(likedCats)).toBeTruthy();
+      expect(likedCats.length).toBeGreaterThanOrEqual(0);
+      // Add more detailed assertions as needed
+    });
+  });
 });

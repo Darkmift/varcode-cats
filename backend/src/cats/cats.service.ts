@@ -239,4 +239,13 @@ export class CatsService {
     }
     await this.voteRepository.remove(voteExists);
   }
+
+  async getCatsLikedByUser(userId: string): Promise<CatDTO[]> {
+    const votes = await this.voteRepository.find({
+      where: { user: { id: userId } },
+      relations: ['cat'],
+    });
+
+    return votes.map((vote) => this.mapToDTO(vote.cat));
+  }
 }
