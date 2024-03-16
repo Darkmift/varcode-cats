@@ -1,6 +1,15 @@
-import { plainToInstance } from 'class-transformer';
-import { IsNumber, IsString, validateSync } from 'class-validator';
+import { Injectable } from '@nestjs/common';
+import { Transform, plainToInstance } from 'class-transformer';
+import { IsEnum, IsNumber, IsString, validateSync } from 'class-validator';
 
+enum Environment {
+  DEVELOPMENT = 'development',
+  STAGING = 'staging',
+  PRODUCTION = 'production',
+  TEST = 'test',
+}
+
+@Injectable()
 export class RootConfig {
   @IsNumber()
   PORT: number;
@@ -10,6 +19,21 @@ export class RootConfig {
   DATADOG_API_KEY: string;
   @IsString()
   DATADOG_APP_KEY: string;
+  @Transform(({ value }) => ('' + value).toLowerCase())
+  @IsEnum(Environment)
+  NODE_ENV: Environment;
+  @IsString()
+  POSTGRES_USER: string;
+  @IsString()
+  POSTGRES_PASSWORD: string;
+  @IsString()
+  POSTGRES_DB: string;
+  @IsString()
+  POSTGRES_HOST: string;
+  @IsNumber()
+  POSTGRES_PORT: number;
+  @IsString()
+  BCRYPT_SECRET: string;
 }
 
 export function validate(config: Record<string, unknown>) {
