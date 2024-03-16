@@ -1,11 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { CatsService } from './cats.service';
-import { Cat, CatVote } from './cats.entity';
-import { TypedConfigModule, dotenvLoader } from 'nest-typed-config';
-import { RootConfig, validate } from '@/config/env.validation';
-import { Admin, User } from '@/auth/user.entity';
-import { AuthModule } from '@/auth/auth.module';
+import SharedTestingModule from '@/../test/shared/sharedTestingModule';
 
 jest.setTimeout(30000);
 
@@ -26,48 +21,7 @@ describe('CatsService', () => {
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [
-        AuthModule,
-        TypedConfigModule.forRoot({
-          isGlobal: true,
-          schema: RootConfig,
-          validate,
-          load: dotenvLoader({
-            envFilePath: '.env.test.local',
-          }),
-        }),
-        TypeOrmModule.forRootAsync({
-          imports: [TypedConfigModule],
-          useFactory: async (rootConfig: RootConfig) => {
-            const {
-              NODE_ENV,
-              POSTGRES_DB,
-              POSTGRES_HOST,
-              POSTGRES_PORT,
-              POSTGRES_USER,
-              POSTGRES_PASSWORD,
-            } = rootConfig;
-
-            const baseOptions = {
-              type: 'postgres',
-              entities: [Cat, CatVote, User, Admin],
-              synchronize: true,
-            };
-
-            const options = {
-              host: POSTGRES_HOST,
-              port: POSTGRES_PORT,
-              username: POSTGRES_USER,
-              password: POSTGRES_PASSWORD,
-              database: POSTGRES_DB,
-            };
-            return { ...options, ...baseOptions } as TypeOrmModuleOptions;
-          },
-          inject: [RootConfig],
-        }),
-        TypeOrmModule.forFeature([Cat, CatVote, User, Admin]),
-      ],
-      providers: [CatsService],
+      imports: [SharedTestingModule.register()],
     }).compile();
 
     service = module.get<CatsService>(CatsService);
