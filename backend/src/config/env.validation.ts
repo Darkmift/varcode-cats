@@ -6,7 +6,10 @@ export class RootConfig {
   PORT: number;
   @IsString()
   FRONTEND_ORIGIN: string;
-
+  @IsString()
+  DATADOG_API_KEY: string;
+  @IsString()
+  DATADOG_APP_KEY: string;
 }
 
 export function validate(config: Record<string, unknown>) {

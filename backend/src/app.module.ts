@@ -8,6 +8,7 @@ import {
 import { AuthModule } from './auth/auth.module';
 import { CatsModule } from './cats/cats.module';
 import { TypedConfigModule, dotenvLoader } from 'nest-typed-config';
+import { LoggingModule } from './logging/logging.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { TypedConfigModule, dotenvLoader } from 'nest-typed-config';
     }),
     AuthModule,
     CatsModule,
+    LoggingModule,
   ],
   controllers: [AppController],
   providers: [AppService],
