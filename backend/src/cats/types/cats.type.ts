@@ -1,13 +1,13 @@
 export interface ICat {
+  id?: string;
   name: string;
   birthday: Date;
-  age: number;
   location: string;
-  favoriteFood: string;
-  furColor: string;
+  favorite_food: string;
+  fur_color: string;
   height: number;
   weight: number;
-  imageUrl: string;
+  image_url: string;
 }
 
 export interface IPaginationParams {

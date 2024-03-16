@@ -2,8 +2,21 @@
 
 import { ApiProperty } from '@nestjs/swagger';
 import { ICat, IPaginationParams, IPaginationResult } from '../types/cats.type';
+import { IsInt, Min } from 'class-validator';
 
 export class CatDTO implements ICat {
+  constructor(cat: ICat) {
+    this.id = cat.id;
+    this.name = cat.name;
+    this.birthday = cat.birthday;
+    this.location = cat.location;
+    this.favorite_food = cat.favorite_food;
+    this.fur_color = cat.fur_color;
+    this.height = cat.height;
+    this.weight = cat.weight;
+    this.image_url = cat.image_url;
+  }
+
   @ApiProperty({
     description: 'The ID of the cat',
     example: 'some uuid string',
@@ -26,7 +39,9 @@ export class CatDTO implements ICat {
     description: 'The age of the cat',
     example: 1,
   })
-  age: number;
+  get age(): number {
+    return differenceInYears(new Date(), this.birthday);
+  }
 
   @ApiProperty({
     description: 'The location of the cat',
@@ -38,13 +53,13 @@ export class CatDTO implements ICat {
     description: 'The favorite food of the cat',
     example: 'Tuna',
   })
-  favoriteFood: string;
+  favorite_food: string;
 
   @ApiProperty({
     description: 'The fur color of the cat',
     example: 'White',
   })
-  furColor: string;
+  fur_color: string;
 
   @ApiProperty({
     description: 'The height of the cat',
@@ -62,7 +77,14 @@ export class CatDTO implements ICat {
     description: 'The image URL of the cat',
     example: 'https://example.com/cat.jpg',
   })
-  imageUrl: string;
+  image_url: string;
+
+  //add a likeCount
+  @ApiProperty({
+    description: 'The number of likes of the cat',
+    example: 100,
+  })
+  likeCount: number;
 }
 
 export class PaginationParamsDTO implements IPaginationParams {
@@ -70,16 +92,20 @@ export class PaginationParamsDTO implements IPaginationParams {
     description: 'The page number',
     example: 1,
   })
+  @IsInt()
+  @Min(1)
   page: number;
 
   @ApiProperty({
     description: 'The number of items per page',
     example: 10,
   })
+  @IsInt()
+  @Min(1)
   limit: number;
 }
 
-export class PaginationResultDTO implements IPaginationResult<CatDTO> {
+export class PaginationResultDTO<T> implements IPaginationResult<T> {
   @ApiProperty({
     description: 'The total number of items',
     example: 100,
@@ -88,9 +114,9 @@ export class PaginationResultDTO implements IPaginationResult<CatDTO> {
 
   @ApiProperty({
     description: 'The list of items',
-    type: [CatDTO],
+    type: Array<T>,
   })
-  items: CatDTO[];
+  items: Array<T>;
 
   //has next ,has prev
   @ApiProperty({
@@ -104,4 +130,11 @@ export class PaginationResultDTO implements IPaginationResult<CatDTO> {
     example: false,
   })
   hasPrev: boolean;
+}
+
+function differenceInYears(currentDate: Date, birthday: Date): number {
+  const diffInMilliseconds = currentDate.getTime() - birthday.getTime();
+  const millisecondsInYear = 1000 * 60 * 60 * 24 * 365.25;
+  const diffInYears = diffInMilliseconds / millisecondsInYear;
+  return Math.floor(diffInYears);
 }
