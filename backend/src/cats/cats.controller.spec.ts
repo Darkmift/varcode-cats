@@ -1,8 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CatsController } from './cats.controller';
-import { CatsService } from './cats.service';
+import { CatsService, mockCats } from './cats.service';
 import { PaginationParamsDTO } from './dto/cats.index';
-import { mockCats } from './cats.service.spec';
 
 describe('CatsController', () => {
   let controller: CatsController;

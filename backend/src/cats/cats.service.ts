@@ -6,8 +6,68 @@ import {
 } from './dto/cats.index';
 import { IVoteForCatParams } from './types/cats.type';
 
-// temp will be replaced with DB logic
-import { mockCats } from './cats.service.spec';
+export const mockCats = [
+  {
+    id: '1',
+    name: 'Cat 1',
+    favoriteFood: 'Tuna',
+    birthday: new Date(),
+    age: 1,
+    location: 'Location 1',
+    furColor: 'White',
+    height: 30,
+    weight: 5,
+    imageUrl: 'https://example.com/cat.jpg',
+  },
+  {
+    id: '2',
+    name: 'Cat 2',
+    favoriteFood: 'Tuna',
+    birthday: new Date(),
+    age: 1,
+    location: 'Location 2',
+    furColor: 'White',
+    height: 30,
+    weight: 5,
+    imageUrl: 'https://example.com/cat.jpg',
+  },
+  {
+    id: '3',
+    name: 'Cat 3',
+    favoriteFood: 'Tuna',
+    birthday: new Date(),
+    age: 1,
+    location: 'Location 3',
+    furColor: 'White',
+    height: 30,
+    weight: 5,
+    imageUrl: 'https://example.com/cat.jpg',
+  },
+  {
+    id: '4',
+    name: 'Cat 4',
+    favoriteFood: 'Tuna',
+    birthday: new Date(),
+    age: 1,
+    location: 'Location 4',
+    furColor: 'White',
+    height: 30,
+    weight: 5,
+    imageUrl: 'https://example.com/cat.jpg',
+  },
+  {
+    id: '5',
+    name: 'Cat 5',
+    favoriteFood: 'Tuna',
+    birthday: new Date(),
+    age: 1,
+    location: 'Location 5',
+    furColor: 'White',
+    height: 30,
+    weight: 5,
+    imageUrl: 'https://example.com/cat.jpg',
+  },
+];
 
 @Injectable()
 export class CatsService {
