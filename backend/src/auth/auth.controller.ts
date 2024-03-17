@@ -26,10 +26,7 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'Ok', type: LoginResultDto })
   @Post('login')
   @HttpCode(200)
-  async login(
-    @Body() body: LoginParamsDto,
-    @Res() response: Response,
-  ): Promise<LoginResultDto> {
+  async login(@Body() body: LoginParamsDto, @Res() response: Response) {
     const result = await this.authService.login(body);
     if (!result) {
       throw new UnauthorizedException('Invalid credentials');
@@ -39,17 +36,14 @@ export class AuthController {
       sameSite: 'none',
       secure: true,
     });
-    return new LoginResultDto(result);
+    return response.send(result);
   }
 
   @ApiOperation({ summary: 'Login admin to app' })
   @ApiResponse({ status: 200, description: 'Ok', type: LoginResultDto })
   @Post('admin-login')
   @HttpCode(200)
-  async loginAdmin(
-    @Body() body: LoginParamsDto,
-    @Res() response: Response,
-  ): Promise<LoginResultDto> {
+  async loginAdmin(@Body() body: LoginParamsDto, @Res() response: Response) {
     const result = await this.authService.loginAdmin(body);
     if (!result) {
       throw new UnauthorizedException('Invalid credentials');
@@ -59,6 +53,7 @@ export class AuthController {
       sameSite: 'none',
       secure: true,
     });
-    return new LoginResultDto(result);
+    // return new LoginResultDto(result);
+    response.send(result);
   }
 }
