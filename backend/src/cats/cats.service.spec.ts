@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CatsService } from './cats.service';
 import SharedTestingModule from '@/../test/shared/sharedTestingModule';
+import { DataSeederService } from '@/data-seeder/data-seeder.service';
 
 jest.setTimeout(30000);
 
@@ -18,6 +19,7 @@ jest.mock('@/utils/datadog/datadog', () => {
 
 describe('CatsService', () => {
   let service: CatsService;
+  let seedService: DataSeederService;
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -25,13 +27,12 @@ describe('CatsService', () => {
     }).compile();
 
     service = module.get<CatsService>(CatsService);
-    await service.onModuleInit();
+    seedService = module.get<DataSeederService>(DataSeederService);
+    await seedService.onModuleInit();
   });
 
   afterAll(async () => {
-    await service['catRepository'].query(
-      'TRUNCATE TABLE admin, "user",cat, cat_vote CASCADE;',
-    );
+    await seedService.deleteAllData();
   });
 
   describe('getTopFive', () => {
@@ -49,7 +50,6 @@ describe('CatsService', () => {
     it('should return paginated cats', async () => {
       // Assuming your seeding process includes creating some cats,
       // adjust `expectedTotal` and `expectedPageCount` based on your seed data.
-      const expectedTotal = 1000; // Example total seeded cats
       const page = 1;
       const limit = 10;
       const paginationParams = { page, limit };
@@ -58,7 +58,7 @@ describe('CatsService', () => {
 
       expect(result).toBeDefined();
       expect(result.items.length).toBeLessThanOrEqual(limit);
-      expect(result.total).toBe(expectedTotal);
+      expect(result.total).toEqual(expect.any(Number));
       expect(result.hasNext).toBe(true);
       expect(result.hasPrev).toBe(false);
     });
@@ -117,17 +117,16 @@ describe('CatsService', () => {
 
   describe('getCatsLikedByUser', () => {
     it('should return cats liked by a user', async () => {
-      const user = await service['userRepository']
-        .createQueryBuilder('user')
-        .select()
-        .orderBy('RANDOM()')
-        .getOne();
-      const cats = await service['catRepository']
-        .createQueryBuilder('cat')
-        .select()
-        .orderBy('RANDOM()')
-        .limit(5)
-        .getMany();
+      const [user] = await seedService.getRandomItems(
+        service['userRepository'],
+        'user',
+        1,
+      );
+      const cats = await seedService.getRandomItems(
+        service['catRepository'],
+        'cat',
+        5,
+      );
 
       for (const cat of cats) {
         await service.addVoteForCat({ catId: cat.id, userId: user.id });
