@@ -2,6 +2,10 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { CatsController } from './cats.controller';
 import { CatsService } from './cats.service';
 import { PaginationParamsDTO } from './dto/cats.index';
+import { Request } from 'express';
+import { JwtAuthGuard } from '@/auth/guards/auth.jwt';
+import { MockJwtAuthGuard } from '@/../test/shared/mocks/MockJwtAuthGuard';
+import { JwtService } from '@nestjs/jwt';
 
 describe('CatsController', () => {
   let controller: CatsController;
@@ -22,9 +26,18 @@ describe('CatsController', () => {
       ),
     };
 
+    const mockJwtService = {
+      verify: jest.fn().mockImplementation(() => ({ userId: 'mockUserId' })),
+      // Add any other methods from JwtService that you use
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       controllers: [CatsController],
-      providers: [{ provide: CatsService, useValue: mockCatsService }],
+      providers: [
+        { provide: CatsService, useValue: mockCatsService },
+        { provide: JwtService, useValue: mockJwtService }, // Mock JwtService
+        { provide: JwtAuthGuard, useClass: MockJwtAuthGuard }, // Use the mock guard
+      ],
     }).compile();
 
     controller = module.get<CatsController>(CatsController);
@@ -73,9 +86,9 @@ describe('CatsController', () => {
     it('should simulate voting for a cat', async () => {
       const catId = 'cat-id';
       const userId = 'Extracted-From-JWT'; // This is simulated for the test case
-      await expect(controller.voteForCat(catId)).resolves.toEqual(
-        `Vote added for cat ${catId} by user ${userId}`,
-      );
+      await expect(
+        controller.voteForCat(catId, { user: { id: userId } } as Request),
+      ).resolves.toEqual(`Vote added for cat ${catId} by user ${userId}`);
       expect(service.addVoteForCat).toHaveBeenCalledWith({ catId, userId });
     });
   });
@@ -84,9 +97,9 @@ describe('CatsController', () => {
     it('should simulate removing a vote for a cat', async () => {
       const catId = 'cat-id';
       const userId = 'Extracted-From-JWT'; // This is simulated for the test case
-      await expect(controller.removeVoteForCat(catId)).resolves.toEqual(
-        `Vote removed for cat ${catId} by user ${userId}`,
-      );
+      await expect(
+        controller.removeVoteForCat(catId, { user: { id: userId } } as Request),
+      ).resolves.toEqual(`Vote removed for cat ${catId} by user ${userId}`);
       expect(service.removeVoteForCat).toHaveBeenCalledWith({ catId, userId });
     });
   });

@@ -5,6 +5,7 @@ import {
   Param,
   Post,
   Query,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -17,8 +18,10 @@ import {
 import { CatsService } from './cats.service';
 import { JwtAuthGuard } from '@/auth/guards/auth.jwt';
 import { CatDTO, PaginationParamsDTO } from './dto/cats.index';
+import { Request } from 'express';
 
 @ApiTags('cats')
+@UseGuards(JwtAuthGuard) // Apply the JwtAuthGuard to all endpoints within the controller
 @Controller('cats')
 export class CatsController {
   constructor(private readonly catsService: CatsService) {}
@@ -57,12 +60,10 @@ export class CatsController {
     type: 'string',
     description: 'The ID of the cat to vote for',
   })
-  @UseGuards(JwtAuthGuard)
-  voteForCat(@Param('id') catId: string) {
-    // Assuming 'userId' would be extracted from the JWT token after successful authentication
+  voteForCat(@Param('id') catId: string, @Req() request: Request) {
     return this.catsService.addVoteForCat({
       catId,
-      userId: 'Extracted-From-JWT',
+      userId: request.user.id,
     });
   }
 
@@ -73,12 +74,11 @@ export class CatsController {
     type: 'string',
     description: 'The ID of the cat to remove vote from',
   })
-  @UseGuards(JwtAuthGuard)
-  removeVoteForCat(@Param('id') catId: string) {
+  removeVoteForCat(@Param('id') catId: string, @Req() request: Request) {
     // Similar to voteForCat, 'userId' would be extracted from JWT
     return this.catsService.removeVoteForCat({
       catId,
-      userId: 'Extracted-From-JWT',
+      userId: request.user.id,
     });
   }
 }
