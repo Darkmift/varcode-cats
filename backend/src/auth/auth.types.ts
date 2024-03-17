@@ -3,9 +3,15 @@ export interface ILoginParams {
   password: string;
 }
 
+export enum Role {
+  ADMIN = 'admin',
+  SUPER_ADMIN = 'super-admin',
+  USER = 'user',
+}
+
 export interface ILoginResult {
   token: string;
-  role: 'admin' | 'user';
+  role: Role;
   username: string;
   lastname: string;
   firstname: string;
@@ -24,5 +30,5 @@ export interface IAdmin {
   username: string;
   password: string;
   email: string;
-  accessLevel: 'admin' | 'super-admin';
+  accessLevel: Role.ADMIN | Role.SUPER_ADMIN;
 }
