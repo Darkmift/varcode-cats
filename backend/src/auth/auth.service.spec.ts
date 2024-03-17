@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthService } from './auth.service';
-import { IAdmin } from './auth.types';
+import { IAdmin, Role } from './auth.types';
 import SharedTestingModule from '@/../test/shared/sharedTestingModule';
 import { DataSeederService } from '@/data-seeder/data-seeder.service';
 
@@ -73,7 +73,7 @@ describe('AuthService', () => {
         first_name: 'Admin',
         last_name: 'User',
         email: 'admin@test.com',
-        accessLevel: 'admin',
+        accessLevel: Role.ADMIN,
       };
 
       const createdAdmin = await service.createAdmin(
@@ -129,7 +129,7 @@ describe('AuthService', () => {
         first_name: 'Admin',
         last_name: 'LoginTest',
         email: 'admintest@test.com',
-        accessLevel: 'admin',
+        accessLevel: Role.ADMIN,
       });
     });
 

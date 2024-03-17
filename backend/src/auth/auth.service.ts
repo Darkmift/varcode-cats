@@ -1,5 +1,5 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { IAdmin, ILoginParams, ILoginResult, IUser } from './auth.types';
+import { Injectable } from '@nestjs/common';
+import { IAdmin, ILoginParams, ILoginResult, IUser, Role } from './auth.types';
 import { Repository } from 'typeorm';
 import { Admin, User } from './user.entity';
 import { compareStringToHash, hashString } from '@/utils/bcrypt';
@@ -55,7 +55,7 @@ export class AuthService {
       firstname: userFound.first_name,
       lastname: userFound.last_name,
       username: userFound.username,
-      role: 'user',
+      role: Role.USER,
     };
   }
 
@@ -82,7 +82,7 @@ export class AuthService {
       firstname: adminFound.first_name,
       lastname: adminFound.last_name,
       username: adminFound.username,
-      role: 'admin',
+      role: Role.ADMIN,
     };
   }
 }
