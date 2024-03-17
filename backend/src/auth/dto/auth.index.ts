@@ -1,17 +1,17 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { ILoginParams, ILoginResult } from '../auth.types';
+import { ILoginParams, ILoginResult, Role } from '../auth.types';
 import { IsAlphanumeric, IsString, Length } from 'class-validator';
 
 export class LoginResultDto implements ILoginResult {
   constructor(loginResult: ILoginResult) {
     this.token = loginResult.token;
-    this.role = loginResult.role || 'user';
+    this.role = loginResult.role || Role.USER;
     this.username = loginResult.username;
     this.lastname = loginResult.lastname;
     this.firstname = loginResult.firstname;
   }
   token: string;
-  role: 'admin' | 'user';
+  role: Role;
   username: string;
 
   @ApiProperty({ example: 'Dunham', description: 'last name of the user' })

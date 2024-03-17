@@ -1,6 +1,6 @@
 import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
 import { CatVote } from '@/cats/cats.entity';
-import { IAdmin, IUser } from './auth.types';
+import { IAdmin, IUser, Role } from './auth.types';
 
 @Entity()
 export class User implements IUser {
@@ -44,5 +44,5 @@ export class Admin implements IAdmin {
   password: string;
 
   @Column()
-  accessLevel: 'admin' | 'super-admin';
+  accessLevel: Role.ADMIN | Role.SUPER_ADMIN;
 }
