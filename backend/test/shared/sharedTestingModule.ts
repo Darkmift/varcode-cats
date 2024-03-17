@@ -7,6 +7,7 @@ import { AuthService } from '@/auth/auth.service';
 import { CatsService } from '@/cats/cats.service';
 import { Cat, CatVote } from '@/cats/cats.entity';
 import { User, Admin } from '@/auth/user.entity';
+import { DataSeederService } from '@/data-seeder/data-seeder.service';
 
 @Module({})
 export default class SharedTestingModule {
@@ -60,7 +61,7 @@ export default class SharedTestingModule {
         }),
         TypeOrmModule.forFeature([Cat, CatVote, User, Admin]),
       ],
-      providers: [AuthService, CatsService], // Add other services if needed
+      providers: [AuthService, CatsService, DataSeederService], // Add other services if needed
     };
   }
 }

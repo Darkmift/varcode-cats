@@ -7,6 +7,7 @@ import { CatsModule } from './cats/cats.module';
 import { TypedConfigModule, dotenvLoader } from 'nest-typed-config';
 import { LoggingModule } from './logging/logging.module';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
+import { DataSeederModule } from './data-seeder/data-seeder.module';
 
 @Module({
   imports: [
@@ -52,6 +53,7 @@ import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
     AuthModule,
     CatsModule,
     LoggingModule,
+    DataSeederModule,
   ],
   controllers: [AppController],
   providers: [AppService],
