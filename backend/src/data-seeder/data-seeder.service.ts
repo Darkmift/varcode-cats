@@ -56,6 +56,8 @@ export class DataSeederService {
     await this.seedUsers(100);
     await this.seedCats(10000);
     await this.seedVotes(50000);
+    await this.seedAdmin();
+    await this.seedTestUsers(10);
 
     Logger.log('Seeding data done', { time: `${performance.now() - start}ms` });
     return;
@@ -104,9 +106,9 @@ export class DataSeederService {
     const DIVIDER = 'vvvv';
     while (uniqueVotes.size < 5000) {
       uniqueVotes.add(
-        `${
-          users[Math.floor(Math.random() * users.length)].id
-        }${DIVIDER}${cats[Math.floor(Math.random() * cats.length)].id}`,
+        `${users[Math.floor(Math.random() * users.length)].id}${DIVIDER}${
+          cats[Math.floor(Math.random() * cats.length)].id
+        }`,
       );
     }
 
@@ -136,6 +138,7 @@ export class DataSeederService {
     const admin = new Admin();
     admin.email = 'admin@admin.com';
     admin.password = await hashString('superAdmin1');
+    admin.username = 'superadmin';
     admin.first_name = 'Super';
     admin.last_name = 'Admin';
     admin.accessLevel = Role.SUPER_ADMIN;
@@ -153,6 +156,7 @@ export class DataSeederService {
     const hashedpassword = await hashString('password1234');
     const newUsers = Array.from({ length: amount }, (v, i) => {
       const user = new User();
+      user.username = 'testuser' + i;
       user.first_name = 'Test' + i;
       user.last_name = 'User' + i;
       user.password = hashedpassword;

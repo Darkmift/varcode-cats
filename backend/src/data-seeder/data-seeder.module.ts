@@ -2,8 +2,7 @@ import { Module } from '@nestjs/common';
 import { DataSeederService } from './data-seeder.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Cat, CatVote } from '@/cats/cats.entity';
-import { User } from '@datadog/datadog-api-client/dist/packages/datadog-api-client-v1';
-import { Admin } from 'typeorm';
+import { Admin, User } from '@/auth/user.entity';
 
 @Module({
   providers: [DataSeederService],
