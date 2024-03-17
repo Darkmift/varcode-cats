@@ -3,6 +3,13 @@ import { ILoginParams, ILoginResult } from '../auth.types';
 import { IsAlphanumeric, IsString, Length } from 'class-validator';
 
 export class LoginResultDto implements ILoginResult {
+  constructor(loginResult: ILoginResult) {
+    this.token = loginResult.token;
+    this.role = loginResult.role || 'user';
+    this.username = loginResult.username;
+    this.lastname = loginResult.lastname;
+    this.firstname = loginResult.firstname;
+  }
   token: string;
   role: 'admin' | 'user';
   username: string;

@@ -2,23 +2,16 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { LoginParamsDto, LoginResultDto } from './dto/auth.index';
+import { UnauthorizedException } from '@nestjs/common';
 
 describe('AuthController', () => {
   let controller: AuthController;
   let authService: jest.Mocked<AuthService>;
 
   beforeEach(async () => {
-    // Mock AuthService with a mocked method `login` that resolves to a value
     const mockAuthService = {
-      login: jest.fn((dto: LoginParamsDto) =>
-        Promise.resolve({
-          token: 'mockToken',
-          role: 'user',
-          username: dto.username,
-          lastname: 'Doe',
-          firstname: 'John',
-        } as LoginResultDto),
-      ),
+      login: jest.fn(),
+      loginAdmin: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -32,31 +25,99 @@ describe('AuthController', () => {
     ) as jest.Mocked<AuthService>;
   });
 
-  it('should be defined', () => {
-    expect(controller).toBeDefined();
+  it('user-login Happy flow', async () => {
+    const loginParamsDto: LoginParamsDto = {
+      username: 'user',
+      password: 'pass',
+    };
+
+    const loginResultDto: LoginResultDto = {
+      token: 'token',
+      role: 'user',
+      username: 'user',
+      firstname: 'First',
+      lastname: 'Last',
+    };
+
+    authService.login.mockResolvedValue(loginResultDto);
+
+    const mockCookie = jest.fn();
+    const mockResponse: any = {
+      cookie: mockCookie,
+    };
+
+    await controller.login(loginParamsDto, mockResponse);
+
+    expect(authService.login).toHaveBeenCalledWith(loginParamsDto);
+    expect(mockCookie).toHaveBeenCalledWith(
+      'session-token',
+      loginResultDto.token,
+      expect.objectContaining({
+        maxAge: 24 * 60 * 60 * 1000,
+        sameSite: 'none',
+        secure: true,
+      }),
+    );
   });
 
-  it('login should call authService.login with correct parameters and return correctly', async () => {
-    const mockLoginParams: LoginParamsDto = {
-      username: 'testUser',
-      password: 'testPass',
+  // User Login Unauthorized
+  it('login should throw UnauthorizedException when authService returns null for user', async () => {
+    const loginParamsDto: LoginParamsDto = {
+      username: 'user',
+      password: 'wrong',
+    };
+    authService.login.mockResolvedValue(null);
+
+    const mockResponse: any = { cookie: jest.fn() };
+
+    await expect(
+      controller.login(loginParamsDto, mockResponse),
+    ).rejects.toThrow(UnauthorizedException);
+  });
+
+  it('admin-login Happy flow', async () => {
+    const loginParamsDto: LoginParamsDto = {
+      username: 'admin',
+      password: 'pass',
+    };
+    const loginResultDto: LoginResultDto = {
+      token: 'admintoken',
+      role: 'admin',
+      username: 'admin',
+      firstname: 'Admin',
+      lastname: 'User',
     };
 
-    const expectedLoginResult: LoginResultDto = {
-      token: 'mockToken',
-      role: 'user',
-      username: 'testUser',
-      lastname: 'Doe',
-      firstname: 'John',
+    authService.loginAdmin.mockResolvedValue(loginResultDto);
+
+    const mockCookie = jest.fn();
+    const mockResponse: any = { cookie: mockCookie };
+
+    await controller.loginAdmin(loginParamsDto, mockResponse);
+
+    expect(authService.loginAdmin).toHaveBeenCalledWith(loginParamsDto);
+    expect(mockCookie).toHaveBeenCalledWith(
+      'session-token',
+      loginResultDto.token,
+      expect.objectContaining({
+        maxAge: 24 * 60 * 60 * 1000,
+        sameSite: 'none',
+        secure: true,
+      }),
+    );
+  });
+
+  it('admin-login should throw UnauthorizedException when authService returns null for admin', async () => {
+    const loginParamsDto: LoginParamsDto = {
+      username: 'admin',
+      password: 'wrong',
     };
+    authService.loginAdmin.mockResolvedValue(null);
 
-    // Call the controller's login method
-    const result = await controller.login(mockLoginParams);
+    const mockResponse: any = { cookie: jest.fn() };
 
-    // Verify that the authService's login method was called with the correct parameters
-    expect(authService.login).toHaveBeenCalledWith(mockLoginParams);
-
-    // Verify that the result of the controller's login method matches the expected value
-    expect(result).toEqual(expectedLoginResult);
+    await expect(
+      controller.loginAdmin(loginParamsDto, mockResponse),
+    ).rejects.toThrow(UnauthorizedException);
   });
 });
