@@ -3,6 +3,7 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { LoginParamsDto, LoginResultDto } from './dto/auth.index';
 import { UnauthorizedException } from '@nestjs/common';
+import { Role } from './auth.types';
 
 describe('AuthController', () => {
   let controller: AuthController;
@@ -33,7 +34,7 @@ describe('AuthController', () => {
 
     const loginResultDto: LoginResultDto = {
       token: 'token',
-      role: 'user',
+      role: Role.USER,
       username: 'user',
       firstname: 'First',
       lastname: 'Last',
@@ -82,7 +83,7 @@ describe('AuthController', () => {
     };
     const loginResultDto: LoginResultDto = {
       token: 'admintoken',
-      role: 'admin',
+      role: Role.ADMIN,
       username: 'admin',
       firstname: 'Admin',
       lastname: 'User',
