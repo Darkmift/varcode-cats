@@ -1,12 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { DataSeederService } from './data-seeder.service';
+import SharedTestingModule from '@/../test/shared/sharedTestingModule';
 
 describe('DataSeederService', () => {
   let service: DataSeederService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [DataSeederService],
+      imports: [SharedTestingModule.register()],
     }).compile();
 
     service = module.get<DataSeederService>(DataSeederService);
