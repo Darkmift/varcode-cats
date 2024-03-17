@@ -1,28 +1,25 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthService } from './auth.service';
-import { JwtService } from '@nestjs/jwt';
 import { IAdmin } from './auth.types';
 import SharedTestingModule from '@/../test/shared/sharedTestingModule';
+import { DataSeederService } from '@/data-seeder/data-seeder.service';
 
 jest.setTimeout(30000);
 
 describe('AuthService', () => {
   let service: AuthService;
-  let jwtService: JwtService;
-
+  let seedService: DataSeederService;
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [SharedTestingModule.register()],
     }).compile();
 
     service = module.get<AuthService>(AuthService);
-    jwtService = module.get<JwtService>(JwtService);
+    seedService = module.get<DataSeederService>(DataSeederService);
   });
 
   afterAll(async () => {
-    await service['userRepository'].query(
-      'TRUNCATE TABLE admin, "user",cat, cat_vote CASCADE;',
-    );
+    await seedService.deleteAllData();
   });
 
   describe('createUser', () => {
@@ -125,8 +122,6 @@ describe('AuthService', () => {
   });
 
   describe('loginAdmin', () => {
-    let testAdminId: string;
-
     beforeAll(async () => {
       const admin = await service.createAdmin({
         username: 'loginTestAdmin',
@@ -136,7 +131,6 @@ describe('AuthService', () => {
         email: 'admintest@test.com',
         accessLevel: 'admin',
       });
-      testAdminId = admin.id;
     });
 
     it('should allow an admin to log in and return a valid token', async () => {
