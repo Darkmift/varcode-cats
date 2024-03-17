@@ -1,3 +1,4 @@
+import { Role } from '@/auth/auth.types';
 import { Admin, User } from '@/auth/user.entity';
 import { Cat, CatVote } from '@/cats/cats.entity';
 import { RootConfig } from '@/config/env.validation';
@@ -137,7 +138,7 @@ export class DataSeederService {
     admin.password = await hashString('superAdmin1');
     admin.first_name = 'Super';
     admin.last_name = 'Admin';
-    admin.accessLevel = 'super-admin';
+    admin.accessLevel = Role.SUPER_ADMIN;
 
     await this.adminRepository.save(admin);
 
