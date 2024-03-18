@@ -1,0 +1,2 @@
+GET http://localhost:3000/cats/search?page=1&limit=10&search=li HTTP/1.1
+Cookie: session-token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3R1c2VyMSIsInN1YiI6Ijg2ZjVjZDNhLWJiOGQtNDA2MS1hZTM5LTAxOGM3NzAwYmM5ZCIsImlhdCI6MTcxMDc1NzQ2NH0.ToDJohSaEY8JwnFZscsyP1319xn5umXv6faNMpTDAs8
