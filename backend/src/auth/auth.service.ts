@@ -1,5 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { IAdmin, ILoginParams, ILoginResult, IUser, Role } from './auth.types';
+import {
+  IAdmin,
+  ILoginParams,
+  ILoginResult,
+  IUser,
+  JwtDecodedPayload,
+  Role,
+} from './auth.types';
 import { Repository } from 'typeorm';
 import { Admin, User } from './user.entity';
 import { compareStringToHash, hashString } from '@/utils/bcrypt';
@@ -47,7 +54,11 @@ export class AuthService {
     if (!isPasswordValid) {
       return null;
     }
-    const payload = { username: user.username, sub: userFound.id };
+    const payload: JwtDecodedPayload = {
+      username: user.username,
+      id: userFound.id,
+      role: Role.USER,
+    };
     const token = await this.jwtService.signAsync(payload);
 
     return {
@@ -74,7 +85,11 @@ export class AuthService {
     if (!isPasswordValid) {
       return null;
     }
-    const payload = { username: admin.username, sub: adminFound.id };
+    const payload: JwtDecodedPayload = {
+      username: admin.username,
+      id: adminFound.id,
+      role: adminFound.accessLevel,
+    };
     const token = await this.jwtService.signAsync(payload);
 
     return {
