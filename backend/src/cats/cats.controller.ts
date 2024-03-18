@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Controller,
   Delete,
   Get,
@@ -40,7 +41,7 @@ export class CatsController {
     return this.catsService.getPaginated(query);
   }
 
-  @Get('get-by-id')
+  @Get('/id/:id')
   @ApiOperation({ summary: 'Get a cat by ID' })
   @ApiResponse({ status: 200, type: CatDTO })
   @ApiQuery({
@@ -49,7 +50,7 @@ export class CatsController {
     description: 'The ID of the cat to retrieve',
     example: 'some-uuid-string',
   })
-  getById(@Query('id') id: string) {
+  getById(@Param('id') id: string) {
     return this.catsService.getById(id);
   }
 
@@ -60,11 +61,17 @@ export class CatsController {
     type: 'string',
     description: 'The ID of the cat to vote for',
   })
-  voteForCat(@Param('id') catId: string, @Req() request: Request) {
-    return this.catsService.addVoteForCat({
+  async voteForCat(@Param('id') catId: string, @Req() request: Request) {
+    const result = await this.catsService.addVoteForCat({
       catId,
       userId: request.user.id,
     });
+
+    if (!result) {
+      throw new BadRequestException('Unable to add vote for the cat');
+    }
+
+    return this.catsService.getById(catId); // Or any other appropriate response
   }
 
   @Delete('vote/:id')
