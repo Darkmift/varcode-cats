@@ -28,6 +28,7 @@ async function bootstrap() {
       new ValidationPipe({
         whitelist: true,
         forbidNonWhitelisted: true,
+        transformOptions: { enableImplicitConversion: true },
         transform: true, // Automatically transform payloads to match DTO classes
       }),
     );
