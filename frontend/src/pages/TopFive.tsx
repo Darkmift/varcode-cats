@@ -2,7 +2,7 @@ import PageWrapper from '@/components/common/PageWrapper';
 import SearchInput from '@/components/common/SearchInput';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { Typography } from '@mui/material';
-import { setSearchTerm } from '@/store/slices/cats';
+import { setSearchTerm } from '@/store/slices/cats.slice';
 type Props = {};
 
 function TopFive({}: Props) {
