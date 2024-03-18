@@ -40,13 +40,34 @@ export class CatsService {
   async getPaginated({
     page,
     limit,
+    search,
   }: PaginationParamsDTO): Promise<PaginationResultDTO<CatDTO>> {
-    const [items, total] = await this.catRepository.findAndCount({
-      skip: (page - 1) * limit,
-      take: limit,
-    });
+    const queryBuilder = this.catRepository
+      .createQueryBuilder('cat')
+      .leftJoin('cat_vote', 'cv', 'cv.cat_id = cat.id')
+      .select('cat.*') 
+      .addSelect('COUNT(cv.id)', 'likes')
+      .groupBy('cat.id');
 
-    const catDTOs = items.map((cat) => this.mapToDTO(cat));
+    if (search) {
+      queryBuilder.where('cat.name ILIKE :search', { search: `%${search}%` });
+    }
+
+    
+    const paginatedQuery = queryBuilder
+      .orderBy('name', 'ASC') 
+      .offset((page - 1) * limit)
+      .limit(limit);
+
+    const items = await paginatedQuery.getRawMany();
+    const total = await queryBuilder.getCount();
+
+    const catDTOs = items.map((cat) =>
+      this.mapToDTO({
+        ...cat,
+        likes: parseInt(cat.likes, 10), 
+      }),
+    );
 
     const hasNext = total > page * limit;
     const hasPrev = page > 1;
@@ -75,40 +96,60 @@ export class CatsService {
     return new CatDTO(fixedCat);
   }
 
-  async getById(id: string): Promise<Cat> {
-    const cat = await this.catRepository.findOne({ where: { id } });
-    if (!cat) {
-      Logger.warn('Cat not found', id);
-    }
-    return cat;
-  }
+  async getById(id: string): Promise<CatDTO> {
+    const queryBuilder = this.catRepository
+      .createQueryBuilder('cat')
+      .leftJoin('cat_vote', 'cv', 'cv.cat_id = cat.id')
+      .where('cat.id = :id', { id })
+      .select('cat.*') 
+      .addSelect('COUNT(cv.id)', 'likes') 
+      .groupBy('cat.id');
 
-  async addVoteForCat({ catId, userId }: IVoteForCatParams) {
-    const voteExists = await this.voteRepository.findOneBy({
-      cat: { id: catId },
-      user: { id: userId },
-    });
-    if (voteExists) {
-      Logger.warn('Vote already exists');
+    const result = await queryBuilder.getRawOne();
+
+    if (!result) {
+      Logger.warn('Cat not found', id);
       return null;
     }
 
-    const cat = await this.catRepository.findOneBy({ id: catId });
-    if (!cat) {
-      throw new Error('Cat not found');
+    const catDTO = this.mapToDTO({
+      ...result,
+      likes: parseInt(result.likes, 10), 
+    });
+
+    return catDTO;
+  }
+
+  async addVoteForCat({ catId, userId }: IVoteForCatParams) {
+    try {
+      const voteExists = await this.voteRepository.findOneBy({
+        cat: { id: catId },
+        user: { id: userId },
+      });
+      if (voteExists) {
+        throw new Error('Vote already exists');
+      }
+
+      const cat = await this.catRepository.findOneBy({ id: catId });
+      if (!cat) {
+        throw new Error('Cat not found');
+      }
+
+      const user = await this.authService.getUserById(userId);
+      if (!user) {
+        throw new Error('User not found');
+      }
+
+      const vote = new CatVote();
+      vote.cat = cat;
+      vote.user = user;
+
+      await this.voteRepository.save(vote);
+      return vote;
+    } catch (error) {
+      Logger.error(error);
+      return null;
     }
-
-    const user = await this.authService.getUserById(userId);
-    if (!user) {
-      throw new Error('User not found');
-    }
-
-    const vote = new CatVote();
-    vote.cat = cat;
-    vote.user = user;
-
-    await this.voteRepository.save(vote);
-    return vote;
   }
 
   async removeVoteForCat({ catId, userId }: IVoteForCatParams) {
