@@ -1,7 +1,19 @@
-post http://localhost:3000/auth/login
-content-type: application/json
+@host = http://localhost:3000
+@username = testuser1
+@user_password = password1234
+### Login and capture the session token
+POST {{host}}/auth/login HTTP/1.1
+Content-Type: application/json
 
 {
-  "username": "testuser1",
-  "password": "password1234"
+  "username": "{{username}}",
+  "password": "{{user_password}}"
 }
+
+### set cookie
+@cookie-token=
+> {% 
+client.global.set("sessionToken", response.headers['Set-Cookie']
+    .find(header => header.startsWith('session-token'))
+    .split(';')[0]); 
+%}
