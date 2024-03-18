@@ -32,3 +32,9 @@ export interface IAdmin {
   email: string;
   accessLevel: Role.ADMIN | Role.SUPER_ADMIN;
 }
+
+export interface JwtDecodedPayload {
+  username: string;
+  id: string;
+  role: Role;
+}
