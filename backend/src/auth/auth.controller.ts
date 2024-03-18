@@ -56,4 +56,17 @@ export class AuthController {
     // return new LoginResultDto(result);
     response.send(result);
   }
+
+  @ApiOperation({ summary: 'Logout from app' })
+  @ApiResponse({ status: 200, description: 'Logged out successfully' })
+  @Post('logout')
+  @HttpCode(200)
+  logout(@Res() response: Response) {
+    response.cookie('session-token', '', {
+      maxAge: 0, // Expire immediately
+      sameSite: 'none',
+      secure: true,
+    });
+    return response.json({ message: 'Logged out successfully' });
+  }
 }
