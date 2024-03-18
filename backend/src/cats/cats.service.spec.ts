@@ -80,10 +80,10 @@ describe('CatsService', () => {
       const voteParams = { catId: cat.id, userId: user.id };
 
       // Add a vote
-      const vote = await service.addVoteForCat(voteParams);
-      expect(vote).toBeDefined();
-      expect(vote.cat.id).toEqual(cat.id);
-      expect(vote.user.id).toEqual(user.id);
+      const updatedCat = await service.addVoteForCat(voteParams);
+      expect(updatedCat).toBeDefined();
+      expect(updatedCat.id).toEqual(cat.id);
+      expect(updatedCat.likeCount).toEqual(expect.any(Number));
 
       // Remove the vote
       await service.removeVoteForCat(voteParams);

@@ -20,6 +20,7 @@ import { CatsService } from './cats.service';
 import { JwtAuthGuard } from '@/auth/guards/auth.jwt';
 import { CatDTO, PaginationParamsDTO } from './dto/cats.index';
 import { Request } from 'express';
+import extractUserDataFromRequest from '@/utils/extractUserDataFromRequest';
 
 @ApiTags('cats')
 @UseGuards(JwtAuthGuard) // Apply the JwtAuthGuard to all endpoints within the controller
@@ -62,9 +63,10 @@ export class CatsController {
     description: 'The ID of the cat to vote for',
   })
   async voteForCat(@Param('id') catId: string, @Req() request: Request) {
+    const { id } = extractUserDataFromRequest(request);
     const result = await this.catsService.addVoteForCat({
       catId,
-      userId: request.user.id,
+      userId: id,
     });
 
     if (!result) {
@@ -82,10 +84,10 @@ export class CatsController {
     description: 'The ID of the cat to remove vote from',
   })
   removeVoteForCat(@Param('id') catId: string, @Req() request: Request) {
-    // Similar to voteForCat, 'userId' would be extracted from JWT
+    const { id } = extractUserDataFromRequest(request);
     return this.catsService.removeVoteForCat({
       catId,
-      userId: request.user.id,
+      userId: id,
     });
   }
 }

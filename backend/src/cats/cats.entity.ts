@@ -49,11 +49,11 @@ export class CatVote {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => User, (user) => user.likes)
+  @ManyToOne(() => User, (user) => user.likes, { nullable: false })
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @ManyToOne(() => Cat, (cat) => cat.likes)
+  @ManyToOne(() => Cat, (cat) => cat.likes, { nullable: false })
   @JoinColumn({ name: 'cat_id' })
   cat: Cat;
 

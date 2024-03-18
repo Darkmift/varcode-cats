@@ -1,4 +1,11 @@
-import { Injectable, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import {
   CatDTO,
   PaginationParamsDTO,
@@ -45,7 +52,7 @@ export class CatsService {
     const queryBuilder = this.catRepository
       .createQueryBuilder('cat')
       .leftJoin('cat_vote', 'cv', 'cv.cat_id = cat.id')
-      .select('cat.*') 
+      .select('cat.*')
       .addSelect('COUNT(cv.id)', 'likes')
       .groupBy('cat.id');
 
@@ -53,9 +60,8 @@ export class CatsService {
       queryBuilder.where('cat.name ILIKE :search', { search: `%${search}%` });
     }
 
-    
     const paginatedQuery = queryBuilder
-      .orderBy('name', 'ASC') 
+      .orderBy('name', 'ASC')
       .offset((page - 1) * limit)
       .limit(limit);
 
@@ -65,7 +71,7 @@ export class CatsService {
     const catDTOs = items.map((cat) =>
       this.mapToDTO({
         ...cat,
-        likes: parseInt(cat.likes, 10), 
+        likes: parseInt(cat.likes, 10),
       }),
     );
 
@@ -101,8 +107,8 @@ export class CatsService {
       .createQueryBuilder('cat')
       .leftJoin('cat_vote', 'cv', 'cv.cat_id = cat.id')
       .where('cat.id = :id', { id })
-      .select('cat.*') 
-      .addSelect('COUNT(cv.id)', 'likes') 
+      .select('cat.*')
+      .addSelect('COUNT(cv.id)', 'likes')
       .groupBy('cat.id');
 
     const result = await queryBuilder.getRawOne();
@@ -114,41 +120,33 @@ export class CatsService {
 
     const catDTO = this.mapToDTO({
       ...result,
-      likes: parseInt(result.likes, 10), 
+      likes: parseInt(result.likes, 10),
     });
 
     return catDTO;
   }
 
+  /**
+   * Adds a vote for a cat by a user, leveraging database constraints to ensure validity.
+   * @param {IVoteForCatParams} { catId, userId } - The cat ID and user ID for the new vote.
+   * @returns {Promise<CatDTO | null>} The updated cat information after adding the vote, or null in case of error.
+   * @throws {BadRequestException} If the vote cannot be added due to database constraints.
+   */
   async addVoteForCat({ catId, userId }: IVoteForCatParams) {
     try {
-      const voteExists = await this.voteRepository.findOneBy({
+      // Using QueryBuilder to directly insert into the cat_vote table
+      await this.voteRepository.insert({
         cat: { id: catId },
         user: { id: userId },
       });
-      if (voteExists) {
-        throw new Error('Vote already exists');
-      }
 
-      const cat = await this.catRepository.findOneBy({ id: catId });
-      if (!cat) {
-        throw new Error('Cat not found');
-      }
-
-      const user = await this.authService.getUserById(userId);
-      if (!user) {
-        throw new Error('User not found');
-      }
-
-      const vote = new CatVote();
-      vote.cat = cat;
-      vote.user = user;
-
-      await this.voteRepository.save(vote);
-      return vote;
+      // Assuming you want to return the updated cat information
+      return this.getById(catId); // Make sure getById method is implemented to return a CatDTO or similar
     } catch (error) {
-      Logger.error(error);
-      return null;
+      Logger.error('Error adding vote:', error.message);
+      throw new BadRequestException(
+        'Failed to add vote due to database constraints.',
+      );
     }
   }
 
@@ -158,14 +156,12 @@ export class CatsService {
       user: { id: userId },
     });
     if (!voteExists) {
-      Logger.warn('Vote not found', {
-        voteTodelete: voteExists,
-        catId,
-        userId,
-      });
-      return;
+      throw new NotFoundException(
+        `Vote not found for catId: ${catId} and userId: ${userId}`,
+      );
     }
     await this.voteRepository.remove(voteExists);
+    return this.getById(catId);
   }
 
   async getCatsLikedByUser(userId: string): Promise<CatDTO[]> {
