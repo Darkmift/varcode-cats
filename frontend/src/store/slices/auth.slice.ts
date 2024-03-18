@@ -52,6 +52,15 @@ export const authSlice = createSlice({
       .addMatcher(authAPI.endpoints.userLogin.matchRejected, (state, action) => {
         state.loading = false;
         state.error = action.error;
+      })
+      // Handle logout mutation
+      .addMatcher(authAPI.endpoints.userLogout.matchFulfilled, (state) => {
+        // Reset state to initial upon logout
+        Object.assign(state, initialState);
+      })
+      .addMatcher(authAPI.endpoints.userLogout.matchRejected, (state) => {
+        // Reset state to initial upon logout
+        Object.assign(state, initialState);
       });
 
     // Handling adminLogin similarly

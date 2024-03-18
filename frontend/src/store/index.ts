@@ -1,11 +1,20 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { themeSlice } from './slices/theme';
 import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
-import { catSlice } from './slices/cats';
-import { authSlice } from './slices/auth';
+import { catSlice } from './slices/cats.slice';
+import { authSlice } from './slices/auth.slice';
+import { authAPI } from './http/api/auth';
+// import { snackbarSlice } from './slices/snackbar.slice';
 
 const store = configureStore({
-  reducer: { theme: themeSlice.reducer, cats: catSlice.reducer, auth: authSlice.reducer },
+  reducer: {
+    theme: themeSlice.reducer,
+    cats: catSlice.reducer,
+    auth: authSlice.reducer,
+    // snackbar: snackbarSlice.reducer,
+    [authAPI.reducerPath]: authAPI.reducer,
+  },
+  middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(authAPI.middleware),
 });
 
 export default store;
