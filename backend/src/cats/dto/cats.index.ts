@@ -2,7 +2,7 @@
 
 import { ApiProperty } from '@nestjs/swagger';
 import { ICat, IPaginationParams, IPaginationResult } from '../types/cats.type';
-import { IsInt, Min } from 'class-validator';
+import { IsInt, IsOptional, IsString, Min } from 'class-validator';
 
 export class CatDTO implements ICat {
   constructor(cat: ICat) {
@@ -15,6 +15,7 @@ export class CatDTO implements ICat {
     this.height = cat.height;
     this.weight = cat.weight;
     this.image_url = cat.image_url;
+    this.likeCount = cat.likes as unknown as number;
   }
 
   @ApiProperty({
@@ -103,6 +104,16 @@ export class PaginationParamsDTO implements IPaginationParams {
   @IsInt()
   @Min(1)
   limit: number;
+
+  //a search string
+  @ApiProperty({
+    description: 'The search string',
+    example: 'Fluffy',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  search?: string;
 }
 
 export class PaginationResultDTO<T> implements IPaginationResult<T> {

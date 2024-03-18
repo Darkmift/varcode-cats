@@ -1,3 +1,5 @@
+import { CatVote } from "../cats.entity";
+
 export interface ICat {
   id?: string;
   name: string;
@@ -8,6 +10,8 @@ export interface ICat {
   height: number;
   weight: number;
   image_url: string;
+  likes?: CatVote[];
+  likeCount?: number;
 }
 
 export interface IPaginationParams {
