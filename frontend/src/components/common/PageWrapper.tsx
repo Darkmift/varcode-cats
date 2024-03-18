@@ -1,10 +1,10 @@
 import { Grid } from '@mui/material';
 import React from 'react';
 
-const PageWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+const PageWrapper: React.FC<{ children: React.ReactNode; [x: string]: any }> = ({ children, rest }) => {
   return (
-    <Grid container>
-      <Grid item xs={12}>
+    <Grid container {...rest}>
+      <Grid item container xs={12}>
         {children}
       </Grid>
     </Grid>
