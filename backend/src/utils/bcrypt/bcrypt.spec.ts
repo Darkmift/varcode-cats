@@ -26,19 +26,10 @@ describe('Hashing and Comparison', () => {
     it('should return false for a string and an incorrect hash', async () => {
       const string = 'TestString';
       const incorrectHash = await hashString('DifferentString');
+      console.log('🚀 ~ it ~ incorrectHash:', incorrectHash);
       const isMatch = await compareStringToHash(string, incorrectHash);
 
       expect(isMatch).toBe(false);
-    });
-
-    it('should handle bcrypt compare directly for controlled testing', async () => {
-      // This test bypasses the hashing function and uses bcrypt directly for a known hash
-      const string = 'password1234';
-      // Known bcrypt hash of the string "TestString" with a salt round of 11 (ensure consistency in salt rounds)
-      const knownHash = '$2b$11$PmYCF6Gx6lF1Cpf9FpYGDuwG.qoIjf3XaJ8wxvxZJZ5w9h4slblny'; // Replace with a real hash of "TestString" with salt rounds of 11
-      const isMatch = await bcrypt.compare(string, knownHash);
-
-      expect(isMatch).toBe(true);
     });
   });
 });

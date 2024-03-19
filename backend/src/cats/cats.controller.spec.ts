@@ -1,29 +1,67 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CatsController } from './cats.controller';
 import { CatsService } from './cats.service';
-import { PaginationParamsDTO } from './dto/cats.index';
+import { CatDTO, PaginationParamsDTO } from './dto/cats.index';
 import { Request } from 'express';
 import { JwtAuthGuard } from '@/auth/guards/auth.jwt';
 import { MockJwtAuthGuard } from '@/../test/shared/mocks/MockJwtAuthGuard';
 import { JwtService } from '@nestjs/jwt';
+import { IPaginationResult } from './types/cats.type';
 
 describe('CatsController', () => {
   let controller: CatsController;
   let service: CatsService;
 
+  const mockParamsOrReult = {
+    catId: '0002d31d-f9be-4056-86ca-4c22fb780622',
+    userId: '881314b4-5a9f-47ae-b175-39e7d06d15b0',
+  };
+  let mockCat: CatDTO;
+  let mockPAginatedResult: IPaginationResult<CatDTO>;
+
   beforeEach(async () => {
+    mockCat = new CatDTO({
+      id: mockParamsOrReult.catId,
+      name: 'Cat Name',
+      birthday: new Date(),
+      favorite_food: 'Cat Food',
+      location: 'Cat Location',
+      fur_color: 'Cat Fur Color',
+      image_url: 'Cat Image URL',
+      height: 10,
+      weight: 10,
+      likeCount: 10,
+      likedByUser: false,
+    });
+
+    mockPAginatedResult = {
+      items: [mockCat],
+      hasNext: false,
+      hasPrev: false,
+      total: 1,
+    };
     const mockCatsService = {
-      getTopFive: jest.fn(() => Promise.resolve([])),
-      getPaginated: jest.fn((query: PaginationParamsDTO) =>
-        Promise.resolve({ items: [], total: 0 }),
+      getTopFive: jest.fn((): Promise<CatDTO[]> => Promise.resolve([mockCat])),
+      getPaginated: jest.fn(
+        (query: PaginationParamsDTO): Promise<IPaginationResult<CatDTO>> =>
+          Promise.resolve(mockPAginatedResult),
       ),
-      getById: jest.fn((id: string) => Promise.resolve({ id })),
-      addVoteForCat: jest.fn(({ catId, userId }) =>
-        Promise.resolve(`Vote added for cat ${catId} by user ${userId}`),
-      ),
-      removeVoteForCat: jest.fn(({ catId, userId }) =>
-        Promise.resolve(`Vote removed for cat ${catId} by user ${userId}`),
-      ),
+      getById: jest.fn((id: string): Promise<CatDTO> => {
+        mockCat.id;
+        return Promise.resolve(mockCat);
+      }),
+      addVoteForCat: jest.fn((mockParamsOrReult): Promise<CatDTO> => {
+        mockCat.id = mockParamsOrReult.catId;
+        mockCat.likedByUser = true;
+        mockCat.likeCount++;
+        return Promise.resolve(structuredClone(mockCat));
+      }),
+      removeVoteForCat: jest.fn((mockParamsOrReult): Promise<CatDTO> => {
+        mockCat.id = mockParamsOrReult.catId;
+        mockCat.likedByUser = false;
+        mockCat.likeCount--;
+        return Promise.resolve(structuredClone(mockCat));
+      }),
     };
 
     const mockJwtService = {
@@ -54,7 +92,7 @@ describe('CatsController', () => {
       const response = await controller.getTopFive({
         user: { id: 'userId' },
       } as Request);
-      expect(response).toEqual([]);
+      expect(response[0].id).toBe(mockCat.id);
       expect(service.getTopFive).toHaveBeenCalled();
 
       // Check each cat for 'id' and 'name' properties
@@ -70,21 +108,19 @@ describe('CatsController', () => {
       const query: PaginationParamsDTO = { page: 1, limit: 10 };
       await expect(
         controller.getPaginated(query, { user: { id: 'userId' } } as Request),
-      ).resolves.toEqual({
-        items: [],
-        total: 0,
-      });
-      expect(service.getPaginated).toHaveBeenCalledWith(query);
+      ).resolves.toEqual(mockPAginatedResult);
+      expect(service.getPaginated).toHaveBeenCalledWith('userId', query);
     });
   });
 
   describe('getById', () => {
     it('should return a cat by ID', async () => {
-      const id = 'some-id';
       await expect(
-        controller.getById(id, { user: { id: 'userId' } } as Request),
-      ).resolves.toEqual({ id });
-      expect(service.getById).toHaveBeenCalledWith(id);
+        controller.getById(mockParamsOrReult.catId, {
+          user: { id: mockParamsOrReult.userId },
+        } as Request),
+      ).resolves.toEqual(mockCat);
+      expect(service.getById).toHaveBeenCalledWith(mockParamsOrReult);
     });
   });
 
@@ -92,21 +128,21 @@ describe('CatsController', () => {
     it('should simulate voting for a cat', async () => {
       const catId = 'cat-id';
       const userId = 'Extracted-From-JWT'; // This is simulated for the test case
-      await expect(
-        controller.voteForCat(catId, { user: { id: userId } } as Request),
-      ).resolves.toEqual(`Vote added for cat ${catId} by user ${userId}`);
+      const result = await controller.voteForCat(catId, {
+        user: { id: userId },
+      } as Request);
       expect(service.addVoteForCat).toHaveBeenCalledWith({ catId, userId });
+      expect(result.likeCount).toEqual(mockCat.likeCount + 1);
     });
   });
 
   describe('removeVoteForCat', () => {
     it('should simulate removing a vote for a cat', async () => {
-      const catId = 'cat-id';
-      const userId = 'Extracted-From-JWT'; // This is simulated for the test case
-      await expect(
-        controller.removeVoteForCat(catId, { user: { id: userId } } as Request),
-      ).resolves.toEqual(`Vote removed for cat ${catId} by user ${userId}`);
-      expect(service.removeVoteForCat).toHaveBeenCalledWith({ catId, userId });
+      const result = await controller.voteForCat(mockParamsOrReult.catId, {
+        user: { id: mockParamsOrReult.userId },
+      } as Request);
+      expect(service.addVoteForCat).toHaveBeenCalledWith(mockParamsOrReult);
+      expect(result.likeCount).toEqual(mockCat.likeCount - 1);
     });
   });
 });

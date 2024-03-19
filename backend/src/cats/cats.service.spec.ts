@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { CatsService } from './cats.service';
 import SharedTestingModule from '@/../test/shared/sharedTestingModule';
 import { DataSeederService } from '@/data-seeder/data-seeder.service';
+import { AuthService } from '@/auth/auth.service';
 
 jest.setTimeout(30000);
 
@@ -20,6 +21,8 @@ jest.mock('@/utils/datadog/datadog', () => {
 describe('CatsService', () => {
   let service: CatsService;
   let seedService: DataSeederService;
+  let authService: AuthService;
+  let userId: string;
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -28,7 +31,15 @@ describe('CatsService', () => {
 
     service = module.get<CatsService>(CatsService);
     seedService = module.get<DataSeederService>(DataSeederService);
+    authService = module.get<AuthService>(AuthService);
     await seedService.onModuleInit();
+    const user = await authService.createUser({
+      password: 'catserviceUser',
+      first_name: 'CatServiceFN',
+      last_name: 'CatServiceLN',
+      username: 'catserviceUuser',
+    });
+    userId = user.id;
   });
 
   afterAll(async () => {
@@ -37,7 +48,7 @@ describe('CatsService', () => {
 
   describe('getTopFive', () => {
     it('should return top 5 cats based on votes', async () => {
-      const topCats = await service.getTopFive('id');
+      const topCats = await service.getTopFive(userId);
 
       expect(topCats).toBeDefined();
       expect(Array.isArray(topCats)).toBeTruthy();
@@ -54,7 +65,7 @@ describe('CatsService', () => {
       const limit = 10;
       const paginationParams = { page, limit };
 
-      const result = await service.getPaginated('id', paginationParams);
+      const result = await service.getPaginated(userId, paginationParams);
 
       expect(result).toBeDefined();
       expect(result.items.length).toBeLessThanOrEqual(limit);
@@ -77,7 +88,7 @@ describe('CatsService', () => {
         .select()
         .orderBy('RANDOM()')
         .getOne();
-      const voteParams = { catId: cat.id, userId: user.id };
+      const voteParams = { catId: cat.id, userId };
 
       // Add a vote
       const updatedCat = await service.addVoteForCat(voteParams);
@@ -88,7 +99,7 @@ describe('CatsService', () => {
       // Remove the vote
       await service.removeVoteForCat(voteParams);
       const removedVote = await service['voteRepository'].findOne({
-        where: { cat: { id: cat.id }, user: { id: user.id } },
+        where: { cat: { id: cat.id }, user: { id: userId } },
       });
       expect(removedVote).toBeNull();
     });
@@ -102,7 +113,7 @@ describe('CatsService', () => {
       }
       // Use the existingCatId fetched in the beforeAll hook
       const cat = await service.getById({
-        userId: 'userId',
+        userId,
         catId: existingCat.id,
       });
 
@@ -112,7 +123,7 @@ describe('CatsService', () => {
 
     it('should return null or handle appropriately when given a non-existing ID', async () => {
       const randomId = '123e4567-e89b-12d3-a456-426614174000';
-      const cat = await service.getById({ userId: 'userId', catId: randomId });
+      const cat = await service.getById({ userId, catId: randomId });
 
       expect(cat).toBeNull();
     });

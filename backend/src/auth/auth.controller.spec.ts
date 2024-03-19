@@ -9,6 +9,15 @@ describe('AuthController', () => {
   let controller: AuthController;
   let authService: jest.Mocked<AuthService>;
 
+  const mockCookie = jest.fn();
+  const mockSend = jest.fn();
+  const mockStatus = jest.fn();
+  const mockResponse: any = {
+    cookie: mockCookie,
+    send: mockSend,
+    status: mockStatus,
+  };
+
   beforeEach(async () => {
     const mockAuthService = {
       login: jest.fn(),
@@ -41,11 +50,6 @@ describe('AuthController', () => {
     };
 
     authService.login.mockResolvedValue(loginResultDto);
-
-    const mockCookie = jest.fn();
-    const mockResponse: any = {
-      cookie: mockCookie,
-    };
 
     await controller.login(loginParamsDto, mockResponse);
 
@@ -91,13 +95,12 @@ describe('AuthController', () => {
 
     authService.loginAdmin.mockResolvedValue(loginResultDto);
 
-    const mockCookie = jest.fn();
-    const mockResponse: any = { cookie: mockCookie };
+  
 
     await controller.loginAdmin(loginParamsDto, mockResponse);
 
     expect(authService.loginAdmin).toHaveBeenCalledWith(loginParamsDto);
-    expect(mockCookie).toHaveBeenCalledWith(
+    expect(mockResponse.cookie).toHaveBeenCalledWith(
       'session-token',
       loginResultDto.token,
       expect.objectContaining({
