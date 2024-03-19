@@ -11,7 +11,7 @@ import {
   PaginationParamsDTO,
   PaginationResultDTO,
 } from './dto/cats.index';
-import { IVoteForCatParams } from './types/cats.type';
+import { IQueryCatsParams, IVoteForCatParams } from './types/cats.type';
 import { Repository } from 'typeorm';
 import { Cat, CatVote } from './cats.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -30,12 +30,19 @@ export class CatsService {
     private authService: AuthService,
   ) {}
 
-  async getTopFive(): Promise<CatDTO[]> {
+  async getTopFive(userId: string): Promise<CatDTO[]> {
     const topCats = await this.catRepository
       .createQueryBuilder('cat')
       .leftJoin('cat_vote', 'cv', 'cv.cat_id = cat.id')
+      .leftJoin(
+        CatVote,
+        'cv2',
+        'cv2.cat_id = cat.id AND cv2.user_id = :userId',
+        { userId },
+      )
       .select('cat')
       .addSelect('COUNT(cv.id)', 'likes')
+      .addSelect('COUNT(cv2.id) > 0', 'likedByUser')
       .groupBy('cat.id')
       .orderBy('likes', 'DESC')
       .limit(5)
@@ -44,16 +51,22 @@ export class CatsService {
     return topCats.map((cat) => this.mapToDTO(cat));
   }
 
-  async getPaginated({
-    page,
-    limit,
-    search,
-  }: PaginationParamsDTO): Promise<PaginationResultDTO<CatDTO>> {
+  async getPaginated(
+    userId: string,
+    { page, limit, search }: PaginationParamsDTO,
+  ): Promise<PaginationResultDTO<CatDTO>> {
     const queryBuilder = this.catRepository
       .createQueryBuilder('cat')
       .leftJoin('cat_vote', 'cv', 'cv.cat_id = cat.id')
+      .leftJoin(
+        CatVote,
+        'cv2',
+        'cv2.cat_id = cat.id AND cv2.user_id = :userId',
+        { userId },
+      )
       .select('cat.*')
       .addSelect('COUNT(cv.id)', 'likes')
+      .addSelect('COUNT(cv2.id) > 0', 'likedByUser')
       .groupBy('cat.id');
 
     if (search) {
@@ -102,25 +115,36 @@ export class CatsService {
     return new CatDTO(fixedCat);
   }
 
-  async getById(id: string): Promise<CatDTO> {
+  async getById({ userId, catId }: IQueryCatsParams): Promise<CatDTO> {
     const queryBuilder = this.catRepository
       .createQueryBuilder('cat')
       .leftJoin('cat_vote', 'cv', 'cv.cat_id = cat.id')
-      .where('cat.id = :id', { id })
+      .leftJoin(
+        CatVote,
+        'cv2',
+        'cv2.cat_id = cat.id AND cv2.user_id = :userId',
+        { userId },
+      ) // Ensure parameter binding
+      .where('cat.id = :catId', { catId }) // Ensure parameter binding
       .select('cat.*')
       .addSelect('COUNT(cv.id)', 'likes')
+      .addSelect(
+        'SUM(CASE WHEN cv2.user_id IS NOT NULL THEN 1 ELSE 0 END) > 0',
+        'likedByUser',
+      )
       .groupBy('cat.id');
 
     const result = await queryBuilder.getRawOne();
 
     if (!result) {
-      Logger.warn('Cat not found', id);
+      Logger.warn('Cat not found', catId);
       return null;
     }
 
     const catDTO = this.mapToDTO({
       ...result,
       likes: parseInt(result.likes, 10),
+      likedByUser: result.likedByUser === true, // Ensure conversion to boolean
     });
 
     return catDTO;
@@ -132,7 +156,10 @@ export class CatsService {
    * @returns {Promise<CatDTO | null>} The updated cat information after adding the vote, or null in case of error.
    * @throws {BadRequestException} If the vote cannot be added due to database constraints.
    */
-  async addVoteForCat({ catId, userId }: IVoteForCatParams) {
+  async addVoteForCat({
+    catId,
+    userId,
+  }: IVoteForCatParams): Promise<CatDTO | null> {
     try {
       // Using QueryBuilder to directly insert into the cat_vote table
       await this.voteRepository.insert({
@@ -141,7 +168,7 @@ export class CatsService {
       });
 
       // Assuming you want to return the updated cat information
-      return this.getById(catId); // Make sure getById method is implemented to return a CatDTO or similar
+      return this.getById({ userId, catId }); // Make sure getById method is implemented to return a CatDTO or similar
     } catch (error) {
       Logger.error('Error adding vote:', error.message);
       throw new BadRequestException(
@@ -150,7 +177,10 @@ export class CatsService {
     }
   }
 
-  async removeVoteForCat({ catId, userId }: IVoteForCatParams) {
+  async removeVoteForCat({
+    catId,
+    userId,
+  }: IVoteForCatParams): Promise<CatDTO | null> {
     const voteExists = await this.voteRepository.findOneBy({
       cat: { id: catId },
       user: { id: userId },
@@ -161,7 +191,7 @@ export class CatsService {
       );
     }
     await this.voteRepository.remove(voteExists);
-    return this.getById(catId);
+    return this.getById({ userId, catId });
   }
 
   async getCatsLikedByUser(userId: string): Promise<CatDTO[]> {
@@ -170,6 +200,9 @@ export class CatsService {
       relations: ['cat'],
     });
 
-    return votes.map((vote) => this.mapToDTO(vote.cat));
+    return votes.map((vote) => {
+      vote.cat['likedByUser'] = true;
+      return this.mapToDTO(vote.cat);
+    });
   }
 }

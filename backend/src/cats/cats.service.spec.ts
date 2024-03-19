@@ -37,7 +37,7 @@ describe('CatsService', () => {
 
   describe('getTopFive', () => {
     it('should return top 5 cats based on votes', async () => {
-      const topCats = await service.getTopFive();
+      const topCats = await service.getTopFive('id');
 
       expect(topCats).toBeDefined();
       expect(Array.isArray(topCats)).toBeTruthy();
@@ -54,7 +54,7 @@ describe('CatsService', () => {
       const limit = 10;
       const paginationParams = { page, limit };
 
-      const result = await service.getPaginated(paginationParams);
+      const result = await service.getPaginated('id', paginationParams);
 
       expect(result).toBeDefined();
       expect(result.items.length).toBeLessThanOrEqual(limit);
@@ -101,7 +101,10 @@ describe('CatsService', () => {
         throw new Error('No cats found in the database');
       }
       // Use the existingCatId fetched in the beforeAll hook
-      const cat = await service.getById(existingCat.id);
+      const cat = await service.getById({
+        userId: 'userId',
+        catId: existingCat.id,
+      });
 
       expect(cat).toBeDefined();
       expect(cat.id).toBe(existingCat.id);
@@ -109,7 +112,7 @@ describe('CatsService', () => {
 
     it('should return null or handle appropriately when given a non-existing ID', async () => {
       const randomId = '123e4567-e89b-12d3-a456-426614174000';
-      const cat = await service.getById(randomId);
+      const cat = await service.getById({ userId: 'userId', catId: randomId });
 
       expect(cat).toBeNull();
     });

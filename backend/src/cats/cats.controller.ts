@@ -31,15 +31,17 @@ export class CatsController {
   @Get('top-five')
   @ApiOperation({ summary: 'Get top five cats' })
   @ApiResponse({ status: 200, type: CatDTO, isArray: true })
-  getTopFive() {
-    return this.catsService.getTopFive();
+  getTopFive(@Req() request: Request) {
+    const { id } = extractUserDataFromRequest(request);
+    return this.catsService.getTopFive(id);
   }
 
   @Get('search')
   @ApiOperation({ summary: 'Search cats with pagination' })
   @ApiResponse({ status: 200, type: CatDTO, isArray: true })
-  getPaginated(@Query() query: PaginationParamsDTO) {
-    return this.catsService.getPaginated(query);
+  getPaginated(@Query() query: PaginationParamsDTO, @Req() request: Request) {
+    const { id } = extractUserDataFromRequest(request);
+    return this.catsService.getPaginated(id, query);
   }
 
   @Get('/id/:id')
@@ -51,8 +53,9 @@ export class CatsController {
     description: 'The ID of the cat to retrieve',
     example: 'some-uuid-string',
   })
-  getById(@Param('id') id: string) {
-    return this.catsService.getById(id);
+  getById(@Param('id') id: string, @Req() request: Request) {
+    const { id: userId } = extractUserDataFromRequest(request);
+    return this.catsService.getById({ userId, catId: id });
   }
 
   @Post('vote/:id')
@@ -64,16 +67,10 @@ export class CatsController {
   })
   async voteForCat(@Param('id') catId: string, @Req() request: Request) {
     const { id } = extractUserDataFromRequest(request);
-    const result = await this.catsService.addVoteForCat({
+    return await this.catsService.addVoteForCat({
       catId,
       userId: id,
     });
-
-    if (!result) {
-      throw new BadRequestException('Unable to add vote for the cat');
-    }
-
-    return this.catsService.getById(catId); // Or any other appropriate response
   }
 
   @Delete('vote/:id')
@@ -89,5 +86,14 @@ export class CatsController {
       catId,
       userId: id,
     });
+  }
+
+  // add /like-by-user
+  @Get('like-by-user')
+  @ApiOperation({ summary: 'Get cats liked by user' })
+  @ApiResponse({ status: 200, type: CatDTO, isArray: true })
+  getLikedByUser(@Req() request: Request) {
+    const { id } = extractUserDataFromRequest(request);
+    return this.catsService.getCatsLikedByUser(id);
   }
 }

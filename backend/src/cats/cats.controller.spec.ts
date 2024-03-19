@@ -51,7 +51,9 @@ describe('CatsController', () => {
   describe('getTopFive', () => {
     it('should return an array of top five cats, each with an id and name', async () => {
       // Resolve and check the response directly
-      const response = await controller.getTopFive();
+      const response = await controller.getTopFive({
+        user: { id: 'userId' },
+      } as Request);
       expect(response).toEqual([]);
       expect(service.getTopFive).toHaveBeenCalled();
 
@@ -66,7 +68,9 @@ describe('CatsController', () => {
   describe('getPaginated', () => {
     it('should return a pagination result', async () => {
       const query: PaginationParamsDTO = { page: 1, limit: 10 };
-      await expect(controller.getPaginated(query)).resolves.toEqual({
+      await expect(
+        controller.getPaginated(query, { user: { id: 'userId' } } as Request),
+      ).resolves.toEqual({
         items: [],
         total: 0,
       });
@@ -77,7 +81,9 @@ describe('CatsController', () => {
   describe('getById', () => {
     it('should return a cat by ID', async () => {
       const id = 'some-id';
-      await expect(controller.getById(id)).resolves.toEqual({ id });
+      await expect(
+        controller.getById(id, { user: { id: 'userId' } } as Request),
+      ).resolves.toEqual({ id });
       expect(service.getById).toHaveBeenCalledWith(id);
     });
   });
