@@ -26,7 +26,6 @@ describe('Hashing and Comparison', () => {
     it('should return false for a string and an incorrect hash', async () => {
       const string = 'TestString';
       const incorrectHash = await hashString('DifferentString');
-      console.log('🚀 ~ it ~ incorrectHash:', incorrectHash);
       const isMatch = await compareStringToHash(string, incorrectHash);
 
       expect(isMatch).toBe(false);

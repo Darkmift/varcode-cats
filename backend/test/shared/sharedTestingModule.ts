@@ -55,12 +55,13 @@ export default class SharedTestingModule {
               username: POSTGRES_USER,
               password: POSTGRES_PASSWORD,
               database: POSTGRES_DB,
+              logging: true,
             };
             return { ...options, ...baseOptions } as TypeOrmModuleOptions;
           },
           inject: [RootConfig],
         }),
-        // TypeOrmModule.forFeature([Cat, CatVote, User, Admin, CatType]),
+        TypeOrmModule.forFeature([Cat, CatVote, User, Admin, CatVariant]),
       ],
       providers: [AuthService, CatsService, DataSeederService], // Add other services if needed
     };

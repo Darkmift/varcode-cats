@@ -36,7 +36,8 @@ describe('AppController (e2e)', () => {
   it('/auth/login (POST) should log user in and return token', async () => {
     const password = 'password1234';
     const username = 'userlogintest';
-    const user = await createRandomUser();
+    const variantIds = await dataSeederService.getCatVariantIds();
+    const user = await createRandomUser(variantIds);
     user.password = password;
     user.username = username;
     await authService.createUser(user); // Register the user in the database

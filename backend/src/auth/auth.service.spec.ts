@@ -100,7 +100,7 @@ describe('AuthService', () => {
         password: 'testPass',
         first_name: 'Login',
         last_name: 'Test',
-        cat_type: 1,
+        cat_type: variantId as unknown as LevelEnum,
       });
       testUserId = user.id;
     });
