@@ -3,6 +3,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { ICat, IPaginationParams, IPaginationResult } from '../types/cats.type';
 import { IsInt, IsOptional, IsString, Min } from 'class-validator';
+import { CatVariant } from '../cat-type.entity';
 
 export class CatDTO implements ICat {
   constructor(cat: ICat) {
@@ -17,6 +18,7 @@ export class CatDTO implements ICat {
     this.image_url = cat.image_url;
     this.likeCount = cat.likes as unknown as number;
     this.likedByUser = !!cat.likedByUser;
+    this.cat_type = cat.cat_type;
   }
 
   @ApiProperty({
@@ -94,6 +96,13 @@ export class CatDTO implements ICat {
     example: true,
   })
   likedByUser: boolean;
+
+  // add cat_type
+  @ApiProperty({
+    description: 'The type of the cat',
+    example: '1',
+  })
+  cat_type: CatVariant;
 }
 
 export class PaginationParamsDTO implements IPaginationParams {

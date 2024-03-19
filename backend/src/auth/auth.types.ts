@@ -22,6 +22,7 @@ export interface IUser {
   last_name: string;
   username: string;
   password: string;
+  cat_type: LevelEnum;
 }
 
 export interface IAdmin {
@@ -37,4 +38,12 @@ export interface JwtDecodedPayload {
   username: string;
   id: string;
   role: Role;
+}
+
+export enum LevelEnum {
+  TYPE_1 = 1,
+  TYPE_2 = 2,
+  TYPE_3 = 3,
+  TYPE_4 = 4,
+  TYPE_5 = 5,
 }

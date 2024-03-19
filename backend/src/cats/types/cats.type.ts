@@ -1,3 +1,4 @@
+import { CatVariant } from '../cat-type.entity';
 import { CatVote } from '../cats.entity';
 
 export interface ICat {
@@ -13,6 +14,7 @@ export interface ICat {
   likes?: CatVote[];
   likeCount?: number;
   likedByUser?: boolean;
+  cat_type: CatVariant;
 }
 
 export interface IPaginationParams {
