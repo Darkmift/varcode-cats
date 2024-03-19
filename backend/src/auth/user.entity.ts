@@ -1,6 +1,14 @@
-import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  OneToMany,
+  JoinColumn,
+  ManyToOne,
+} from 'typeorm';
 import { CatVote } from '@/cats/cats.entity';
 import { IAdmin, IUser, Role } from './auth.types';
+import { CatVariant } from '@/cats/cat-type.entity';
 
 @Entity()
 export class User implements IUser {
@@ -21,6 +29,11 @@ export class User implements IUser {
 
   @OneToMany(() => CatVote, (like) => like.user)
   likes: CatVote[];
+
+  @ManyToOne(() => CatVariant, (catVariant) => catVariant.users)
+  @JoinColumn({ name: 'cat_type_id' })
+  // @ts-ignore
+  cat_type: CatVariant;
 }
 
 @Entity()

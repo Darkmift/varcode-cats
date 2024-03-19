@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import { User } from '@/auth/user.entity'; // Adjust the import path as necessary
 import { ICat } from './types/cats.type';
+import { CatVariant } from './cat-type.entity';
 
 @Entity()
 export class Cat implements ICat {
@@ -41,6 +42,10 @@ export class Cat implements ICat {
 
   @OneToMany(() => CatVote, (catVote) => catVote.cat)
   likes: CatVote[];
+
+  @ManyToOne(() => CatVariant, catVariant => catVariant.cats)
+  @JoinColumn({ name: 'cat_type_id' })
+  cat_type: CatVariant;
 }
 
 @Entity()

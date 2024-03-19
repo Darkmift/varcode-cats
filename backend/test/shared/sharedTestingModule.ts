@@ -8,6 +8,7 @@ import { CatsService } from '@/cats/cats.service';
 import { Cat, CatVote } from '@/cats/cats.entity';
 import { User, Admin } from '@/auth/user.entity';
 import { DataSeederService } from '@/data-seeder/data-seeder.service';
+import { CatVariant } from '@/cats/cat-type.entity';
 
 @Module({})
 export default class SharedTestingModule {
@@ -44,7 +45,7 @@ export default class SharedTestingModule {
 
             const baseOptions = {
               type: 'postgres',
-              entities: [Cat, CatVote, User, Admin],
+              entities: [Cat, CatVote, User, Admin, CatVariant],
               synchronize: true,
             };
 
@@ -59,7 +60,7 @@ export default class SharedTestingModule {
           },
           inject: [RootConfig],
         }),
-        TypeOrmModule.forFeature([Cat, CatVote, User, Admin]),
+        // TypeOrmModule.forFeature([Cat, CatVote, User, Admin, CatType]),
       ],
       providers: [AuthService, CatsService, DataSeederService], // Add other services if needed
     };
