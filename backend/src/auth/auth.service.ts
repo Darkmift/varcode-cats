@@ -26,7 +26,7 @@ export class AuthService {
   //a fn that creates a User
   async createUser(user: IUser): Promise<User> {
     user.password = await hashString(user.password);
-    return this.userRepository.save(user);
+    return this.userRepository.save(user as unknown as User);
   }
 
   //a fn that creates a admin
