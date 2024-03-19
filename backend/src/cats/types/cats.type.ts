@@ -12,6 +12,7 @@ export interface ICat {
   image_url: string;
   likes?: CatVote[];
   likeCount?: number;
+  likedByUser?: boolean;
 }
 
 export interface IPaginationParams {
@@ -24,6 +25,8 @@ export interface IVoteForCatParams {
   catId: string;
   userId: string;
 }
+
+export interface IQueryCatsParams extends IVoteForCatParams {}
 
 export interface IPaginationResult<T> {
   items: T[];

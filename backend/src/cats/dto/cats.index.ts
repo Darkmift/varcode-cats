@@ -16,6 +16,7 @@ export class CatDTO implements ICat {
     this.weight = cat.weight;
     this.image_url = cat.image_url;
     this.likeCount = cat.likes as unknown as number;
+    this.likedByUser = !!cat.likedByUser;
   }
 
   @ApiProperty({
@@ -86,6 +87,13 @@ export class CatDTO implements ICat {
     example: 100,
   })
   likeCount: number;
+
+  // add likedByUser
+  @ApiProperty({
+    description: 'Whether the cat is liked by the user',
+    example: true,
+  })
+  likedByUser: boolean;
 }
 
 export class PaginationParamsDTO implements IPaginationParams {
