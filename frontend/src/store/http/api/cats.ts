@@ -20,13 +20,13 @@ export const catsApi = createApi({
     getCatById: builder.query<ICat, string>({
       query: (id) => `id/${id}`,
     }),
-    voteForCat: builder.mutation<void, { catId: string; userId: string }>({
+    voteForCat: builder.mutation<ICat, { catId: string }>({
       query: ({ catId }) => ({
         url: `vote/${catId}`,
         method: 'POST',
       }),
     }),
-    removeVoteForCat: builder.mutation<void, { catId: string; userId: string }>({
+    removeVoteForCat: builder.mutation<ICat, { catId: string }>({
       query: ({ catId }) => ({
         url: `vote/${catId}`,
         method: 'DELETE',
