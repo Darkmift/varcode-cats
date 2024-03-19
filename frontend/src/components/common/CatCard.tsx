@@ -5,12 +5,13 @@ import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
 import CardActions from '@mui/material/CardActions';
 import Button from '@mui/material/Button';
-import { LocationOn, Cake, FavoriteBorder, Favorite } from '@mui/icons-material';
+import { LocationOn, Cake, FavoriteBorder, Favorite, InvertColors } from '@mui/icons-material';
 import { calculateAge } from '../../utils/utils';
 import { ICat } from '@/types';
 import { useSnackbar } from 'notistack';
 import { useRemoveVoteForCatMutation, useVoteForCatMutation } from '@/store/http/api/cats';
 import { useState } from 'react';
+import { Badge, Box } from '@mui/material';
 
 type CatCardProps = {
   cat: ICat;
@@ -67,7 +68,21 @@ const CatCard: React.FC<CatCardProps> = ({ cat }) => {
           <Cake fontSize="small" /> Born: {catBirth}
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          age: {calculateAge(catBirth)}
+          Age: {calculateAge(catBirth)}
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+          Color:{' '}
+          <Badge
+            sx={{
+              fontWeight: 900,
+              color: '#4c4c52',
+              backgroundColor: currentCat.fur_color,
+              borderRadius: '5px',
+              padding: '2px 5px 1px',
+            }}
+          >
+            {currentCat.fur_color.toLocaleUpperCase()}
+          </Badge>
         </Typography>
         <Typography variant="body2" color="text.secondary">
           Favorite food: {currentCat.favorite_food}
