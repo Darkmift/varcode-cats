@@ -7,6 +7,7 @@ import { JwtAuthGuard } from '@/auth/guards/auth.jwt';
 import { MockJwtAuthGuard } from '@/../test/shared/mocks/MockJwtAuthGuard';
 import { JwtService } from '@nestjs/jwt';
 import { IPaginationResult } from './types/cats.type';
+import { CatVariant } from './cat-type.entity';
 
 describe('CatsController', () => {
   let controller: CatsController;
@@ -20,6 +21,8 @@ describe('CatsController', () => {
   let mockPAginatedResult: IPaginationResult<CatDTO>;
 
   beforeEach(async () => {
+    const level = new CatVariant();
+    level.level = 1;
     mockCat = new CatDTO({
       id: mockParamsOrReult.catId,
       name: 'Cat Name',
@@ -32,6 +35,7 @@ describe('CatsController', () => {
       weight: 10,
       likeCount: 10,
       likedByUser: false,
+      cat_type: level,
     });
 
     mockPAginatedResult = {
