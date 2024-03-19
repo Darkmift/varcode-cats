@@ -3,6 +3,7 @@ import { CatsService } from './cats.service';
 import SharedTestingModule from '@/../test/shared/sharedTestingModule';
 import { DataSeederService } from '@/data-seeder/data-seeder.service';
 import { AuthService } from '@/auth/auth.service';
+import { LevelEnum } from '@/auth/auth.types';
 
 jest.setTimeout(30000);
 
@@ -33,11 +34,13 @@ describe('CatsService', () => {
     seedService = module.get<DataSeederService>(DataSeederService);
     authService = module.get<AuthService>(AuthService);
     await seedService.onModuleInit();
+    const variants = await seedService.getCatVariantIds();
     const user = await authService.createUser({
       password: 'catserviceUser',
       first_name: 'CatServiceFN',
       last_name: 'CatServiceLN',
       username: 'catserviceUuser',
+      cat_type: variants[0] as unknown as LevelEnum,
     });
     userId = user.id;
   });
