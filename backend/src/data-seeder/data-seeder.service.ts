@@ -48,8 +48,11 @@ export class DataSeederService {
     const usersCount = await this.checkIfDataExists(this.userRepository);
     const catsCount = await this.checkIfDataExists(this.catRepository);
     const votesCount = await this.checkIfDataExists(this.voteRepository);
+    const catVariantCount = await this.checkIfDataExists(
+      this.catVariantRepository,
+    );
 
-    if (usersCount || catsCount || votesCount) {
+    if (usersCount || catsCount || votesCount || catVariantCount) {
       Logger.log('Seeding aborted, data already exists', {
         time: performance.now() - start,
       });
@@ -87,7 +90,7 @@ export class DataSeederService {
   }
 
   async getCatVariantIds(): Promise<string[]> {
-    const catVariants = await this.catVariantRepository.find();
+    const catVariants = await this.catVariantRepository.find({});
     return catVariants.map((catVariant) => catVariant.id);
   }
 
@@ -237,7 +240,7 @@ export class DataSeederService {
     }
 
     await this.catRepository.query(
-      'TRUNCATE TABLE admin, "user",cat, cat_vote CASCADE;',
+      'TRUNCATE TABLE admin, "user",cat, cat_vote, cat_variant CASCADE;',
     );
   }
 
