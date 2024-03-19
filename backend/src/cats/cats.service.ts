@@ -30,32 +30,8 @@ export class CatsService {
     private authService: AuthService,
   ) {}
 
-  async getTopFive(userId: string): Promise<CatDTO[]> {
-    const topCats = await this.catRepository
-      .createQueryBuilder('cat')
-      .leftJoin('cat_vote', 'cv', 'cv.cat_id = cat.id')
-      .leftJoin(
-        CatVote,
-        'cv2',
-        'cv2.cat_id = cat.id AND cv2.user_id = :userId',
-        { userId },
-      )
-      .select('cat')
-      .addSelect('COUNT(cv.id)', 'likes')
-      .addSelect('COUNT(cv2.id) > 0', 'likedByUser')
-      .groupBy('cat.id')
-      .orderBy('likes', 'DESC')
-      .limit(5)
-      .getRawMany();
-
-    return topCats.map((cat) => this.mapToDTO(cat));
-  }
-
-  async getPaginated(
-    userId: string,
-    { page, limit, search }: PaginationParamsDTO,
-  ): Promise<PaginationResultDTO<CatDTO>> {
-    const queryBuilder = this.catRepository
+  private createBaseQuery(userId: string) {
+    return this.catRepository
       .createQueryBuilder('cat')
       .leftJoin('cat_vote', 'cv', 'cv.cat_id = cat.id')
       .leftJoin(
@@ -66,19 +42,36 @@ export class CatsService {
       )
       .select('cat.*')
       .addSelect('COUNT(cv.id)', 'likes')
-      .addSelect('COUNT(cv2.id) > 0', 'likedByUser')
+      .addSelect(
+        'SUM(CASE WHEN cv2.user_id IS NOT NULL THEN 1 ELSE 0 END) > 0',
+        'likedByUser',
+      )
       .groupBy('cat.id');
+  }
 
+  async getTopFive(userId: string): Promise<CatDTO[]> {
+    const queryBuilder = this.createBaseQuery(userId)
+      .orderBy('likes', 'DESC')
+      .limit(5)
+      .getRawMany();
+
+    return (await queryBuilder).map((cat) => this.mapToDTO(cat));
+  }
+
+  async getPaginated(
+    userId: string,
+    { page, limit, search }: PaginationParamsDTO,
+  ): Promise<PaginationResultDTO<CatDTO>> {
+    const queryBuilder = this.createBaseQuery(userId);
     if (search) {
       queryBuilder.where('cat.name ILIKE :search', { search: `%${search}%` });
     }
-
-    const paginatedQuery = queryBuilder
+    queryBuilder
       .orderBy('name', 'ASC')
       .offset((page - 1) * limit)
       .limit(limit);
 
-    const items = await paginatedQuery.getRawMany();
+    const items = await queryBuilder.getRawMany();
     const total = await queryBuilder.getCount();
 
     const catDTOs = items.map((cat) =>
@@ -116,23 +109,9 @@ export class CatsService {
   }
 
   async getById({ userId, catId }: IQueryCatsParams): Promise<CatDTO> {
-    const queryBuilder = this.catRepository
-      .createQueryBuilder('cat')
-      .leftJoin('cat_vote', 'cv', 'cv.cat_id = cat.id')
-      .leftJoin(
-        CatVote,
-        'cv2',
-        'cv2.cat_id = cat.id AND cv2.user_id = :userId',
-        { userId },
-      ) // Ensure parameter binding
-      .where('cat.id = :catId', { catId }) // Ensure parameter binding
-      .select('cat.*')
-      .addSelect('COUNT(cv.id)', 'likes')
-      .addSelect(
-        'SUM(CASE WHEN cv2.user_id IS NOT NULL THEN 1 ELSE 0 END) > 0',
-        'likedByUser',
-      )
-      .groupBy('cat.id');
+    const queryBuilder = this.createBaseQuery(userId).where('cat.id = :catId', {
+      catId,
+    });
 
     const result = await queryBuilder.getRawOne();
 
