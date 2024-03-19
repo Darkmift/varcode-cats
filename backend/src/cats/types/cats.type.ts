@@ -1,4 +1,4 @@
-import { CatVote } from "../cats.entity";
+import { CatVote } from '../cats.entity';
 
 export interface ICat {
   id?: string;
@@ -17,6 +17,7 @@ export interface ICat {
 export interface IPaginationParams {
   page: number;
   limit: number;
+  search?: string;
 }
 
 export interface IVoteForCatParams {
