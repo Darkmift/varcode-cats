@@ -24,6 +24,7 @@ const AppMuiThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children
           text: {
             primary: isDarkMode ? '#DEF7FD' : '#000000',
             secondary: isDarkMode ? '#b3b3b3' : '#4f4f4f',
+            disabled: isDarkMode ? '#9197ff' : '#27283b',
           },
         },
       }),

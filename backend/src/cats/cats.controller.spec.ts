@@ -6,7 +6,9 @@ import { Request } from 'express';
 import { JwtAuthGuard } from '@/auth/guards/auth.jwt';
 import { MockJwtAuthGuard } from '@/../test/shared/mocks/MockJwtAuthGuard';
 import { JwtService } from '@nestjs/jwt';
-import { IPaginationResult } from './types/cats.type';
+import { IPaginationResult, IQueryCatsParams } from './types/cats.type';
+import { CatVariant } from './cat-type.entity';
+import { IUserParams, Role } from '@/auth/auth.types';
 
 describe('CatsController', () => {
   let controller: CatsController;
@@ -18,8 +20,11 @@ describe('CatsController', () => {
   };
   let mockCat: CatDTO;
   let mockPAginatedResult: IPaginationResult<CatDTO>;
+  let mockUserParams: IUserParams;
 
   beforeEach(async () => {
+    const level = new CatVariant();
+    level.level = 1;
     mockCat = new CatDTO({
       id: mockParamsOrReult.catId,
       name: 'Cat Name',
@@ -32,6 +37,7 @@ describe('CatsController', () => {
       weight: 10,
       likeCount: 10,
       likedByUser: false,
+      cat_type_id: level,
     });
 
     mockPAginatedResult = {
@@ -40,32 +46,49 @@ describe('CatsController', () => {
       hasPrev: false,
       total: 1,
     };
+    mockUserParams = {
+      userId: '000fa245-fc23-4f7b-9454-01877874fbf0',
+      role: Role.USER,
+      cat_type_id: '0002d31d-f9be-4056-86ca-4c22fb780622',
+    };
     const mockCatsService = {
-      getTopFive: jest.fn((): Promise<CatDTO[]> => Promise.resolve([mockCat])),
+      getTopFive: jest.fn(
+        (userParams: IUserParams): Promise<CatDTO[]> =>
+          Promise.resolve([mockCat]),
+      ),
       getPaginated: jest.fn(
-        (query: PaginationParamsDTO): Promise<IPaginationResult<CatDTO>> =>
+        (
+          userParams: IUserParams,
+          query: PaginationParamsDTO,
+        ): Promise<IPaginationResult<CatDTO>> =>
           Promise.resolve(mockPAginatedResult),
       ),
-      getById: jest.fn((id: string): Promise<CatDTO> => {
-        mockCat.id;
-        return Promise.resolve(mockCat);
-      }),
-      addVoteForCat: jest.fn((mockParamsOrReult): Promise<CatDTO> => {
-        mockCat.id = mockParamsOrReult.catId;
-        mockCat.likedByUser = true;
-        mockCat.likeCount++;
-        return Promise.resolve(structuredClone(mockCat));
-      }),
-      removeVoteForCat: jest.fn((mockParamsOrReult): Promise<CatDTO> => {
-        mockCat.id = mockParamsOrReult.catId;
-        mockCat.likedByUser = false;
-        mockCat.likeCount--;
-        return Promise.resolve(structuredClone(mockCat));
-      }),
+      getById: jest.fn(
+        (params: IUserParams & IQueryCatsParams): Promise<CatDTO> => {
+          mockCat.id;
+          return Promise.resolve(mockCat);
+        },
+      ),
+      addVoteForCat: jest.fn(
+        (params: IUserParams & IQueryCatsParams): Promise<CatDTO> => {
+          mockCat.id = params.catId;
+          mockCat.likedByUser = true;
+          mockCat.likeCount++;
+          return Promise.resolve(structuredClone(mockCat));
+        },
+      ),
+      removeVoteForCat: jest.fn(
+        (params: IUserParams & IQueryCatsParams): Promise<CatDTO> => {
+          mockCat.id = params.catId;
+          mockCat.likedByUser = false;
+          mockCat.likeCount--;
+          return Promise.resolve(structuredClone(mockCat));
+        },
+      ),
     };
 
     const mockJwtService = {
-      verify: jest.fn().mockImplementation(() => ({ userId: 'mockUserId' })),
+      verify: jest.fn().mockImplementation(() => mockUserParams),
       // Add any other methods from JwtService that you use
     };
 
@@ -107,9 +130,15 @@ describe('CatsController', () => {
     it('should return a pagination result', async () => {
       const query: PaginationParamsDTO = { page: 1, limit: 10 };
       await expect(
-        controller.getPaginated(query, { user: { id: 'userId' } } as Request),
+        controller.getPaginated(query, {
+          user: {
+            id: mockUserParams.userId,
+            cat_type_id: mockUserParams.cat_type_id,
+            role: mockUserParams.role,
+          },
+        } as Request),
       ).resolves.toEqual(mockPAginatedResult);
-      expect(service.getPaginated).toHaveBeenCalledWith('userId', query);
+      expect(service.getPaginated).toHaveBeenCalledWith(mockUserParams, query);
     });
   });
 

@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthService } from './auth.service';
-import { IAdmin, Role } from './auth.types';
+import { IAdmin, LevelEnum, Role } from './auth.types';
 import SharedTestingModule from '@/../test/shared/sharedTestingModule';
 import { DataSeederService } from '@/data-seeder/data-seeder.service';
 
@@ -9,6 +9,7 @@ jest.setTimeout(30000);
 describe('AuthService', () => {
   let service: AuthService;
   let seedService: DataSeederService;
+  let variantId:  string;
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [SharedTestingModule.register()],
@@ -16,6 +17,9 @@ describe('AuthService', () => {
 
     service = module.get<AuthService>(AuthService);
     seedService = module.get<DataSeederService>(DataSeederService);
+    await seedService.seedCatVariant();
+    const variantIds = await seedService.getCatVariantIds();
+    variantId = variantIds[0];
   });
 
   afterAll(async () => {
@@ -29,6 +33,7 @@ describe('AuthService', () => {
         password: 'password',
         first_name: 'Test',
         last_name: 'User',
+        cat_type_id: variantId,
       };
 
       const createdUser = await service.createUser(structuredClone(userParams));
@@ -48,6 +53,7 @@ describe('AuthService', () => {
         password: 'password',
         first_name: 'Test',
         last_name: 'UserGetById',
+        cat_type_id: variantId,
       });
       existingUserId = newUser.id;
     });
@@ -95,6 +101,7 @@ describe('AuthService', () => {
         password: 'testPass',
         first_name: 'Login',
         last_name: 'Test',
+        cat_type_id: variantId,
       });
       testUserId = user.id;
     });

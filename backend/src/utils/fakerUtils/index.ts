@@ -1,7 +1,8 @@
-import { IUser } from '@/auth/auth.types';
+import { IUser, LevelEnum } from '@/auth/auth.types';
 import { faker } from '@faker-js/faker';
 import { hashString } from '../bcrypt';
 import { ICat } from '@/cats/types/cats.type';
+import { CatVariant } from '@/cats/cat-type.entity';
 
 const catsImages = [
   {
@@ -67,7 +68,7 @@ const catsImages = [
 ];
 
 function makeNumber(min, max) {
-  return faker.number.bigInt({ min, max }) as unknown as number;
+  return faker.number.int({ min, max }) as unknown as number;
 }
 
 //pick a random image from the list
@@ -77,18 +78,19 @@ function getRandomImage() {
 }
 
 // a function that makes a random IUser
-export async function createRandomUser(): Promise<IUser> {
+export async function createRandomUser(catTypeIds: string[]): Promise<IUser> {
   const password = await hashString(faker.internet.password());
   return {
     first_name: faker.person.firstName(),
     last_name: faker.person.lastName(),
     username: faker.internet.userName(),
     password,
+    cat_type_id: catTypeIds[Math.floor(Math.random() * catTypeIds.length)],
   };
 }
 
 // a function that makes a random ICat
-export function createRandomCat(): ICat {
+export function createRandomCat(catTypeIds: string[]): ICat {
   return {
     name: faker.animal.cat(),
     birthday: faker.date.birthdate(),
@@ -98,5 +100,8 @@ export function createRandomCat(): ICat {
     height: makeNumber(10, 50),
     weight: makeNumber(1, 10),
     image_url: getRandomImage().url,
+    cat_type_id: catTypeIds[
+      Math.floor(Math.random() * catTypeIds.length)
+    ] as unknown as CatVariant,
   };
 }

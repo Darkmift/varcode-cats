@@ -8,5 +8,6 @@ export default function extractUserDataFromRequest(
     id: req.user.id,
     role: req.user.role,
     username: req.user.username,
+    cat_type_id: req.user.cat_type_id,
   };
 }

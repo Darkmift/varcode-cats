@@ -8,13 +8,14 @@ import { User } from '@/auth/user.entity';
 import { JwtModule } from '@nestjs/jwt';
 import { TypedConfigModule } from 'nest-typed-config';
 import { RootConfig } from '@/config/env.validation';
+import { CatVariant } from './cat-type.entity';
 
 @Module({
   providers: [CatsService],
   controllers: [CatsController],
   imports: [
     AuthModule,
-    TypeOrmModule.forFeature([Cat, CatVote, User]),
+    TypeOrmModule.forFeature([Cat, CatVote, User, CatVariant]),
     JwtModule.registerAsync({
       imports: [TypedConfigModule],
       useFactory: async (rootConfig: RootConfig) => ({

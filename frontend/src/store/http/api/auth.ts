@@ -32,14 +32,14 @@ export const authAPI = createApi({
       }),
       // Note: No transformResponse needed as we expect no return data
     }),
-    // adminLogin: builder.mutation<ILoginResult, ILoginParams>({
-    //   query: (credentials) => ({
-    //     url: '/admin-login',
-    //     method: 'POST',
-    //     body: credentials,
-    //   }),
-    //   transformResponse: (response: ILoginResult) => response,
-    // }),
+    adminLogin: builder.mutation<ILoginResult, ILoginParams>({
+      query: (credentials) => ({
+        url: `${ENDPOINT_AUTH}/admin-login`,
+        method: 'POST',
+        body: credentials,
+      }),
+      transformResponse: (response: ILoginResult) => response,
+    }),
   }),
 });
 
@@ -47,5 +47,5 @@ export const authAPI = createApi({
 export const {
   useUserLoginMutation,
   useUserLogoutMutation,
-  // useAdminLoginMutation
+  useAdminLoginMutation
 } = authAPI;

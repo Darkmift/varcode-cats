@@ -1,5 +1,6 @@
 import { Role } from '@/auth/auth.types';
 import { Admin, User } from '@/auth/user.entity';
+import { CatVariant } from '@/cats/cat-type.entity';
 import { Cat, CatVote } from '@/cats/cats.entity';
 import { RootConfig } from '@/config/env.validation';
 import { hashString } from '@/utils/bcrypt';
@@ -20,6 +21,8 @@ export class DataSeederService {
     private userRepository: Repository<User>,
     @InjectRepository(Admin)
     private adminRepository: Repository<Admin>,
+    @InjectRepository(CatVariant)
+    private catVariantRepository: Repository<CatVariant>,
   ) {}
 
   async onModuleInit(): Promise<void> {
@@ -45,14 +48,18 @@ export class DataSeederService {
     const usersCount = await this.checkIfDataExists(this.userRepository);
     const catsCount = await this.checkIfDataExists(this.catRepository);
     const votesCount = await this.checkIfDataExists(this.voteRepository);
+    const catVariantCount = await this.checkIfDataExists(
+      this.catVariantRepository,
+    );
 
-    if (usersCount || catsCount || votesCount) {
+    if (usersCount || catsCount || votesCount || catVariantCount) {
       Logger.log('Seeding aborted, data already exists', {
         time: performance.now() - start,
       });
       return;
     }
 
+    await this.seedCatVariant();
     await this.seedUsers(100);
     await this.seedCats(10000);
     await this.seedVotes(50000);
@@ -63,13 +70,39 @@ export class DataSeederService {
     return;
   }
 
+  // seed catVariant
+
+  async seedCatVariant(): Promise<void> {
+    const start = performance.now();
+    Logger.log('Seeding catVariant...');
+
+    const catVariants = [1, 2, 3, 4, 5].map((n) => {
+      const v = new CatVariant();
+      v.level = n;
+      return v;
+    });
+
+    await this.batchInsert(this.catVariantRepository, catVariants, 5);
+
+    Logger.log('Seeding catVariant done', {
+      time: `${performance.now() - start}ms`,
+    });
+  }
+
+  async getCatVariantIds(): Promise<string[]> {
+    const catVariants = await this.catVariantRepository.find({});
+    return catVariants.map((catVariant) => catVariant.id);
+  }
+
   async seedUsers(amount: number): Promise<void> {
     const start = performance.now();
     Logger.log('Seeding users...', { amount });
 
+    const catTypeIds = await this.getCatVariantIds();
+
     const randomUsers = (await Promise.all(
-      Array.from({ length: amount }, () => createRandomUser()),
-    )) as User[];
+      Array.from({ length: amount }, () => createRandomUser(catTypeIds)),
+    )) as unknown[] as User[];
 
     await this.batchInsert(this.userRepository, randomUsers, 100);
 
@@ -83,8 +116,10 @@ export class DataSeederService {
     const start = performance.now();
     Logger.log('Seeding cats...', { amount });
 
+    const catTypeIds = await this.getCatVariantIds();
+
     const randomCats = (await Promise.all(
-      Array.from({ length: amount }, () => createRandomCat()),
+      Array.from({ length: amount }, () => createRandomCat(catTypeIds)),
     )) as Cat[];
 
     await this.batchInsert(this.catRepository, randomCats, 200);
@@ -153,6 +188,8 @@ export class DataSeederService {
   async seedTestUsers(amount: number): Promise<void> {
     const start = performance.now();
     Logger.log('Seeding test users...');
+    const catTypeIds = await this.getCatVariantIds();
+
     const hashedpassword = await hashString('password1234');
     const newUsers = Array.from({ length: amount }, (v, i) => {
       const user = new User();
@@ -160,6 +197,7 @@ export class DataSeederService {
       user.first_name = 'Test' + i;
       user.last_name = 'User' + i;
       user.password = hashedpassword;
+      user.cat_type_id = catTypeIds[0];
       return user;
     });
 
@@ -202,7 +240,7 @@ export class DataSeederService {
     }
 
     await this.catRepository.query(
-      'TRUNCATE TABLE admin, "user",cat, cat_vote CASCADE;',
+      'TRUNCATE TABLE admin, "user",cat, cat_vote, cat_variant CASCADE;',
     );
   }
 
@@ -210,12 +248,14 @@ export class DataSeederService {
     repository: Repository<T>,
     name: string,
     amount: number,
+    cat_type_id?: string,
   ): Promise<T[]> {
-    return await repository
-      .createQueryBuilder(name)
-      .select()
-      .orderBy('RANDOM()')
-      .limit(amount)
-      .getMany();
+    const builder = repository.createQueryBuilder(name).select();
+
+    if (cat_type_id) {
+      builder.where('cat_type_id = :cat_type_id', { cat_type_id });
+    }
+
+    return await builder.orderBy('RANDOM()').limit(amount).getMany();
   }
 }

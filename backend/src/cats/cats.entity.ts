@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import { User } from '@/auth/user.entity'; // Adjust the import path as necessary
 import { ICat } from './types/cats.type';
+import { CatVariant } from './cat-type.entity';
 
 @Entity()
 export class Cat implements ICat {
@@ -41,6 +42,13 @@ export class Cat implements ICat {
 
   @OneToMany(() => CatVote, (catVote) => catVote.cat)
   likes: CatVote[];
+
+  @Column('text')
+  cat_type_id: CatVariant;
+
+  @ManyToOne(() => CatVariant, (catVariant) => catVariant.cats)
+  @JoinColumn({ name: 'cat_type_id' })
+  cat_type: CatVariant;
 }
 
 @Entity()
@@ -49,11 +57,17 @@ export class CatVote {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => User, (user) => user.likes, { nullable: false })
+  @ManyToOne(() => User, (user) => user.likes, {
+    nullable: false,
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @ManyToOne(() => Cat, (cat) => cat.likes, { nullable: false })
+  @ManyToOne(() => Cat, (cat) => cat.likes, {
+    nullable: false,
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'cat_id' })
   cat: Cat;
 

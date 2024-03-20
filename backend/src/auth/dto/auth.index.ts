@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { ILoginParams, ILoginResult, Role } from '../auth.types';
 import { IsAlphanumeric, IsString, Length } from 'class-validator';
+import { th } from '@faker-js/faker';
 
 export class LoginResultDto implements ILoginResult {
   constructor(loginResult: ILoginResult) {
@@ -9,6 +10,7 @@ export class LoginResultDto implements ILoginResult {
     this.username = loginResult.username;
     this.lastname = loginResult.lastname;
     this.firstname = loginResult.firstname;
+    this.cat_type_id = loginResult.cat_type_id;
   }
   token: string;
   role: Role;
@@ -19,6 +21,10 @@ export class LoginResultDto implements ILoginResult {
 
   @ApiProperty({ example: 'Jeff', description: 'First name of the user' })
   firstname: string;
+
+  // add cat_type
+  @ApiProperty({ example: 'cat', description: 'type of the cat' })
+  cat_type_id: string;
 }
 
 export class LoginParamsDto implements ILoginParams {

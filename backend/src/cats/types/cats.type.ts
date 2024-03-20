@@ -1,3 +1,5 @@
+import { IUserParams, Role } from '@/auth/auth.types';
+import { CatVariant } from '../cat-type.entity';
 import { CatVote } from '../cats.entity';
 
 export interface ICat {
@@ -13,6 +15,7 @@ export interface ICat {
   likes?: CatVote[];
   likeCount?: number;
   likedByUser?: boolean;
+  cat_type_id: CatVariant;
 }
 
 export interface IPaginationParams {
@@ -26,7 +29,7 @@ export interface IVoteForCatParams {
   userId: string;
 }
 
-export interface IQueryCatsParams extends IVoteForCatParams {}
+export interface IQueryCatsParams extends IVoteForCatParams, IUserParams {}
 
 export interface IPaginationResult<T> {
   items: T[];

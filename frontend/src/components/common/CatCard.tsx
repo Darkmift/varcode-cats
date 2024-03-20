@@ -5,19 +5,22 @@ import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
 import CardActions from '@mui/material/CardActions';
 import Button from '@mui/material/Button';
-import { LocationOn, Cake, FavoriteBorder, Favorite, InvertColors } from '@mui/icons-material';
+import { LocationOn, Cake, FavoriteBorder, Favorite } from '@mui/icons-material';
 import { calculateAge } from '../../utils/utils';
-import { ICat } from '@/types';
+import { ICat, Role } from '@/types';
 import { useSnackbar } from 'notistack';
 import { useRemoveVoteForCatMutation, useVoteForCatMutation } from '@/store/http/api/cats';
 import { useState } from 'react';
-import { Badge, Box } from '@mui/material';
+import { Badge, Chip, useTheme } from '@mui/material';
+import { useAppSelector } from '@/store';
 
 type CatCardProps = {
   cat: ICat;
 };
 
 const CatCard: React.FC<CatCardProps> = ({ cat }) => {
+  const theme = useTheme();
+  const role = useAppSelector((state) => state.auth.role);
   const { enqueueSnackbar } = useSnackbar();
   const [voteForCat, { isLoading: isVoting }] = useVoteForCatMutation();
   const [removeVoteForCat, { isLoading: isRemovingVote }] = useRemoveVoteForCatMutation();
@@ -75,10 +78,11 @@ const CatCard: React.FC<CatCardProps> = ({ cat }) => {
           <Badge
             sx={{
               fontWeight: 900,
-              color: '#4c4c52',
+              color: theme.palette.text.disabled,
               backgroundColor: currentCat.fur_color,
               borderRadius: '5px',
               padding: '2px 5px 1px',
+              border: `1px solid ${theme.palette.primary.main}`,
             }}
           >
             {currentCat.fur_color.toLocaleUpperCase()}
@@ -92,15 +96,19 @@ const CatCard: React.FC<CatCardProps> = ({ cat }) => {
         </Typography>
       </CardContent>
       <CardActions>
-        <Button
-          onClick={handleVote}
-          size="small"
-          color="primary"
-          disabled={disableVoteButton || isVoting || isRemovingVote}
-        >
-          {currentCat.likedByUser ? <Favorite fontSize="small" /> : <FavoriteBorder fontSize="small" />} Like (
-          {currentCat.likeCount || 0})
-        </Button>
+        {role === Role.USER ? (
+          <Button
+            onClick={handleVote}
+            size="small"
+            color="primary"
+            disabled={disableVoteButton || isVoting || isRemovingVote}
+          >
+            {currentCat.likedByUser ? <Favorite fontSize="small" /> : <FavoriteBorder fontSize="small" />} Like (
+            {currentCat.likeCount || 0})
+          </Button>
+        ) : (
+          <Chip color="primary" label="ADMIN MODE" disabled />
+        )}
       </CardActions>
     </Card>
   );

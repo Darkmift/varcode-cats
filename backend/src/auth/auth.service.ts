@@ -26,7 +26,7 @@ export class AuthService {
   //a fn that creates a User
   async createUser(user: IUser): Promise<User> {
     user.password = await hashString(user.password);
-    return this.userRepository.save(user);
+    return this.userRepository.save(user as unknown as User);
   }
 
   //a fn that creates a admin
@@ -40,8 +40,8 @@ export class AuthService {
   }
 
   async login(user: ILoginParams): Promise<ILoginResult> {
-    const userFound = await this.userRepository.findOne({
-      where: { username: user.username },
+    const userFound = await this.userRepository.findOneBy({
+      username: user.username,
     });
     if (!userFound) {
       return null;
@@ -58,6 +58,7 @@ export class AuthService {
       username: user.username,
       id: userFound.id,
       role: Role.USER,
+      cat_type_id: userFound.cat_type_id,
     };
     const token = await this.jwtService.signAsync(payload);
 
@@ -66,6 +67,7 @@ export class AuthService {
       firstname: userFound.first_name,
       lastname: userFound.last_name,
       username: userFound.username,
+      cat_type_id: userFound.cat_type_id,
       role: Role.USER,
     };
   }
@@ -89,6 +91,7 @@ export class AuthService {
       username: admin.username,
       id: adminFound.id,
       role: adminFound.accessLevel,
+      cat_type_id: null,
     };
     const token = await this.jwtService.signAsync(payload);
 
@@ -98,6 +101,7 @@ export class AuthService {
       lastname: adminFound.last_name,
       username: adminFound.username,
       role: Role.ADMIN,
+      cat_type_id: null,
     };
   }
 }

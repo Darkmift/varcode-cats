@@ -32,16 +32,20 @@ export class CatsController {
   @ApiOperation({ summary: 'Get top five cats' })
   @ApiResponse({ status: 200, type: CatDTO, isArray: true })
   getTopFive(@Req() request: Request) {
-    const { id } = extractUserDataFromRequest(request);
-    return this.catsService.getTopFive(id);
+    const { id, cat_type_id, role } = extractUserDataFromRequest(request);
+    const cats = this.catsService.getTopFive({ userId: id, cat_type_id, role });
+    return cats;
   }
 
   @Get('search')
   @ApiOperation({ summary: 'Search cats with pagination' })
   @ApiResponse({ status: 200, type: CatDTO, isArray: true })
   getPaginated(@Query() query: PaginationParamsDTO, @Req() request: Request) {
-    const { id } = extractUserDataFromRequest(request);
-    return this.catsService.getPaginated(id, query);
+    const { id, cat_type_id, role } = extractUserDataFromRequest(request);
+    return this.catsService.getPaginated(
+      { userId: id, cat_type_id, role },
+      query,
+    );
   }
 
   @Get('/id/:id')
@@ -54,8 +58,18 @@ export class CatsController {
     example: 'some-uuid-string',
   })
   getById(@Param('id') id: string, @Req() request: Request) {
-    const { id: userId } = extractUserDataFromRequest(request);
-    return this.catsService.getById({ userId, catId: id });
+    const {
+      id: userId,
+      cat_type_id,
+      role,
+    } = extractUserDataFromRequest(request);
+
+    return this.catsService.getById({
+      role,
+      cat_type_id,
+      userId,
+      catId: id,
+    });
   }
 
   @Post('vote/:id')
@@ -66,10 +80,13 @@ export class CatsController {
     description: 'The ID of the cat to vote for',
   })
   async voteForCat(@Param('id') catId: string, @Req() request: Request) {
-    const { id } = extractUserDataFromRequest(request);
+    const { id, cat_type_id, role } = extractUserDataFromRequest(request);
+
     return await this.catsService.addVoteForCat({
       catId,
       userId: id,
+      cat_type_id,
+      role,
     });
   }
 
@@ -81,10 +98,13 @@ export class CatsController {
     description: 'The ID of the cat to remove vote from',
   })
   removeVoteForCat(@Param('id') catId: string, @Req() request: Request) {
-    const { id } = extractUserDataFromRequest(request);
+    const { id, cat_type_id, role } = extractUserDataFromRequest(request);
+
     return this.catsService.removeVoteForCat({
       catId,
       userId: id,
+      cat_type_id,
+      role,
     });
   }
 
@@ -93,7 +113,12 @@ export class CatsController {
   @ApiOperation({ summary: 'Get cats liked by user' })
   @ApiResponse({ status: 200, type: CatDTO, isArray: true })
   getLikedByUser(@Req() request: Request) {
-    const { id } = extractUserDataFromRequest(request);
-    return this.catsService.getCatsLikedByUser(id);
+    const { id, cat_type_id, role } = extractUserDataFromRequest(request);
+
+    return this.catsService.getCatsLikedByUser({
+      userId: id,
+      cat_type_id,
+      role,
+    });
   }
 }

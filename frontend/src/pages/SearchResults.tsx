@@ -2,8 +2,9 @@ import CatCardDisplay from '@/components/common/CatCardDisplay';
 import PageWrapper from '@/components/common/PageWrapper';
 import PaginationBar from '@/components/common/PaginationBar';
 import { useSearchCatsQuery } from '@/store/http/api/cats';
-import { Grid, Typography } from '@mui/material';
+import { Chip, Grid, Typography } from '@mui/material';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import StarIcon from '@mui/icons-material/Star';
 
 type Props = {};
 
@@ -28,8 +29,13 @@ function SearchResults({}: Props) {
 
   return (
     <PageWrapper>
-      <Grid item xs={12}>
+      <Grid item xs={12} sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
         <Typography variant="h4">Search Results</Typography>
+        <Chip
+          icon={<StarIcon />}
+          label={cats?.total?.toLocaleString() || 'N/A'}
+          color="primary"
+        />
       </Grid>
       <Grid item xs={12}>
         {/* Here you can render the search results */}
