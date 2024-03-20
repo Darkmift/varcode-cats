@@ -32,10 +32,11 @@ import { DataSeederModule } from './data-seeder/data-seeder.module';
         } = rootConfig;
 
         const path = __dirname + '/**/*.entity{.ts,.js}';
-        const baseOptions = {
+        const baseOptions: TypeOrmModuleOptions = {
           type: 'postgres',
           entities: [path],
           synchronize: true,
+          logging: true,
         };
 
         const options = {

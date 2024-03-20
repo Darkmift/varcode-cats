@@ -197,7 +197,7 @@ export class DataSeederService {
       user.first_name = 'Test' + i;
       user.last_name = 'User' + i;
       user.password = hashedpassword;
-      user.cat_type = catTypeIds[0] as unknown as CatVariant;
+      user.cat_type_id = catTypeIds[0];
       return user;
     });
 
@@ -248,12 +248,14 @@ export class DataSeederService {
     repository: Repository<T>,
     name: string,
     amount: number,
+    cat_type_id?: string,
   ): Promise<T[]> {
-    return await repository
-      .createQueryBuilder(name)
-      .select()
-      .orderBy('RANDOM()')
-      .limit(amount)
-      .getMany();
+    const builder = repository.createQueryBuilder(name).select();
+
+    if (cat_type_id) {
+      builder.where('cat_type_id = :cat_type_id', { cat_type_id });
+    }
+
+    return await builder.orderBy('RANDOM()').limit(amount).getMany();
   }
 }

@@ -17,6 +17,7 @@ describe('AuthService', () => {
 
     service = module.get<AuthService>(AuthService);
     seedService = module.get<DataSeederService>(DataSeederService);
+    await seedService.seedCatVariant();
     const variantIds = await seedService.getCatVariantIds();
     variantId = variantIds[0];
   });
@@ -32,7 +33,7 @@ describe('AuthService', () => {
         password: 'password',
         first_name: 'Test',
         last_name: 'User',
-        cat_type: variantId as unknown as LevelEnum,
+        cat_type_id: variantId,
       };
 
       const createdUser = await service.createUser(structuredClone(userParams));
@@ -52,7 +53,7 @@ describe('AuthService', () => {
         password: 'password',
         first_name: 'Test',
         last_name: 'UserGetById',
-        cat_type: variantId as unknown as LevelEnum,
+        cat_type_id: variantId,
       });
       existingUserId = newUser.id;
     });
@@ -100,7 +101,7 @@ describe('AuthService', () => {
         password: 'testPass',
         first_name: 'Login',
         last_name: 'Test',
-        cat_type: variantId as unknown as LevelEnum,
+        cat_type_id: variantId,
       });
       testUserId = user.id;
     });

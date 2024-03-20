@@ -43,7 +43,10 @@ export class Cat implements ICat {
   @OneToMany(() => CatVote, (catVote) => catVote.cat)
   likes: CatVote[];
 
-  @ManyToOne(() => CatVariant, catVariant => catVariant.cats)
+  @Column('text')
+  cat_type_id: CatVariant;
+
+  @ManyToOne(() => CatVariant, (catVariant) => catVariant.cats)
   @JoinColumn({ name: 'cat_type_id' })
   cat_type: CatVariant;
 }
@@ -54,11 +57,17 @@ export class CatVote {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => User, (user) => user.likes, { nullable: false })
+  @ManyToOne(() => User, (user) => user.likes, {
+    nullable: false,
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @ManyToOne(() => Cat, (cat) => cat.likes, { nullable: false })
+  @ManyToOne(() => Cat, (cat) => cat.likes, {
+    nullable: false,
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'cat_id' })
   cat: Cat;
 

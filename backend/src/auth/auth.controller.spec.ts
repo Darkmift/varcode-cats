@@ -47,6 +47,7 @@ describe('AuthController', () => {
       username: 'user',
       firstname: 'First',
       lastname: 'Last',
+      cat_type_id: 'cat_type',
     };
 
     authService.login.mockResolvedValue(loginResultDto);
@@ -91,11 +92,10 @@ describe('AuthController', () => {
       username: 'admin',
       firstname: 'Admin',
       lastname: 'User',
+      cat_type_id: 'cat_type',
     };
 
     authService.loginAdmin.mockResolvedValue(loginResultDto);
-
-  
 
     await controller.loginAdmin(loginParamsDto, mockResponse);
 

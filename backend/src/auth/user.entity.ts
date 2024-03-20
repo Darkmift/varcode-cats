@@ -30,6 +30,9 @@ export class User implements IUser {
   @OneToMany(() => CatVote, (like) => like.user)
   likes: CatVote[];
 
+  @Column()
+  cat_type_id: string;
+
   @ManyToOne(() => CatVariant, (catVariant) => catVariant.users)
   @JoinColumn({ name: 'cat_type_id' })
   // @ts-ignore

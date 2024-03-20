@@ -85,9 +85,7 @@ export async function createRandomUser(catTypeIds: string[]): Promise<IUser> {
     last_name: faker.person.lastName(),
     username: faker.internet.userName(),
     password,
-    cat_type: catTypeIds[
-      Math.floor(Math.random() * catTypeIds.length)
-    ] as unknown as LevelEnum,
+    cat_type_id: catTypeIds[Math.floor(Math.random() * catTypeIds.length)],
   };
 }
 
@@ -102,7 +100,7 @@ export function createRandomCat(catTypeIds: string[]): ICat {
     height: makeNumber(10, 50),
     weight: makeNumber(1, 10),
     image_url: getRandomImage().url,
-    cat_type: catTypeIds[
+    cat_type_id: catTypeIds[
       Math.floor(Math.random() * catTypeIds.length)
     ] as unknown as CatVariant,
   };

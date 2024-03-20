@@ -42,9 +42,11 @@ export default class SharedTestingModule {
               POSTGRES_USER,
               POSTGRES_PASSWORD,
             } = rootConfig;
+            // const path = __dirname + '/**/*.entity{.ts,.js}';
 
             const baseOptions = {
               type: 'postgres',
+              // entities: [path],
               entities: [Cat, CatVote, User, Admin, CatVariant],
               synchronize: true,
             };
@@ -55,7 +57,7 @@ export default class SharedTestingModule {
               username: POSTGRES_USER,
               password: POSTGRES_PASSWORD,
               database: POSTGRES_DB,
-              logging: true,
+              // logging: true,
             };
             return { ...options, ...baseOptions } as TypeOrmModuleOptions;
           },

@@ -14,9 +14,9 @@ export class CatVariant {
   })
   level: number;
 
-  @OneToMany((type) => Cat, (cat) => cat.cat_type)
+  @OneToMany((type) => Cat, (cat) => cat.cat_type, { onDelete: 'CASCADE' })
   cats: Cat[];
 
-  @OneToMany((type) => User, (user) => user.cat_type)
+  @OneToMany((type) => User, (user) => user.cat_type, { onDelete: 'CASCADE' })
   users: User[];
 }

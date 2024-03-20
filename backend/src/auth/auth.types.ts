@@ -1,3 +1,5 @@
+import { CatVariant } from '@/cats/cat-type.entity';
+
 export interface ILoginParams {
   username: string;
   password: string;
@@ -15,6 +17,7 @@ export interface ILoginResult {
   username: string;
   lastname: string;
   firstname: string;
+  cat_type_id: string;
 }
 
 export interface IUser {
@@ -22,7 +25,7 @@ export interface IUser {
   last_name: string;
   username: string;
   password: string;
-  cat_type: LevelEnum;
+  cat_type_id: string;
 }
 
 export interface IAdmin {
@@ -38,6 +41,7 @@ export interface JwtDecodedPayload {
   username: string;
   id: string;
   role: Role;
+  cat_type_id: string;
 }
 
 export enum LevelEnum {
@@ -46,4 +50,10 @@ export enum LevelEnum {
   TYPE_3 = 3,
   TYPE_4 = 4,
   TYPE_5 = 5,
+}
+
+export interface IUserParams {
+  cat_type_id: string;
+  role: Role;
+  userId: string;
 }

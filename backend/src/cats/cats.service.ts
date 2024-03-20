@@ -17,6 +17,7 @@ import { Cat, CatVote } from './cats.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AuthService } from '@/auth/auth.service';
 import { User } from '@/auth/user.entity';
+import { IUserParams, Role } from '@/auth/auth.types';
 
 @Injectable()
 export class CatsService {
@@ -27,12 +28,12 @@ export class CatsService {
     private voteRepository: Repository<CatVote>,
     @InjectRepository(User)
     private userRepository: Repository<User>,
-    private authService: AuthService,
   ) {}
 
-  private createBaseQuery(userId: string) {
-    return this.catRepository
-      .createQueryBuilder('cat')
+  private createBaseQuery({ userId, role, cat_type_id }: IUserParams) {
+    const querybuilder = this.catRepository.createQueryBuilder('cat');
+
+    querybuilder
       .leftJoin('cat_vote', 'cv', 'cv.cat_id = cat.id')
       .leftJoin(
         CatVote,
@@ -47,24 +48,40 @@ export class CatsService {
         'likedByUser',
       )
       .groupBy('cat.id');
+    if (role === Role.USER) {
+      querybuilder.andWhere('cat_type_id = :cat_type_id', { cat_type_id });
+    }
+
+    return querybuilder;
   }
 
-  async getTopFive(userId: string): Promise<CatDTO[]> {
-    const queryBuilder = this.createBaseQuery(userId)
+  async getTopFive({
+    userId,
+    role,
+    cat_type_id,
+  }: IUserParams): Promise<CatDTO[]> {
+    const queryBuilder = await this.createBaseQuery({
+      userId,
+      role,
+      cat_type_id,
+    })
       .orderBy('likes', 'DESC')
       .limit(5)
       .getRawMany();
 
-    return (await queryBuilder).map((cat) => this.mapToDTO(cat));
+    const cats = queryBuilder.map((cat) => this.mapToDTO(cat));
+    return cats;
   }
 
   async getPaginated(
-    userId: string,
+    { role, cat_type_id, userId }: IUserParams,
     { page, limit, search }: PaginationParamsDTO,
   ): Promise<PaginationResultDTO<CatDTO>> {
-    const queryBuilder = this.createBaseQuery(userId);
+    const queryBuilder = this.createBaseQuery({ userId, role, cat_type_id });
     if (search) {
-      queryBuilder.where('cat.name ILIKE :search', { search: `%${search}%` });
+      queryBuilder.andWhere('cat.name ILIKE :search', {
+        search: `%${search}%`,
+      });
     }
     queryBuilder
       .orderBy('name', 'ASC')
@@ -94,7 +111,7 @@ export class CatsService {
 
   private removePrefix(cat: Cat) {
     return Object.keys(cat).reduce((acc, key) => {
-      const newKey = key.replace('cat_', '');
+      const newKey = key === 'cat_type_id' ? key : key.replace('cat_', '');
       acc[newKey] = cat[key];
       if (newKey === 'likes') {
         acc[newKey] = +cat[key];
@@ -108,8 +125,17 @@ export class CatsService {
     return new CatDTO(fixedCat);
   }
 
-  async getById({ userId, catId }: IQueryCatsParams): Promise<CatDTO> {
-    const queryBuilder = this.createBaseQuery(userId).where('cat.id = :catId', {
+  async getById({
+    catId,
+    userId,
+    cat_type_id,
+    role,
+  }: IUserParams & IQueryCatsParams): Promise<CatDTO> {
+    const queryBuilder = this.createBaseQuery({
+      userId,
+      role,
+      cat_type_id,
+    }).where('cat.id = :catId', {
       catId,
     });
 
@@ -138,8 +164,12 @@ export class CatsService {
   async addVoteForCat({
     catId,
     userId,
-  }: IVoteForCatParams): Promise<CatDTO | null> {
+    cat_type_id,
+    role,
+  }: IUserParams & IVoteForCatParams): Promise<CatDTO | null> {
     try {
+      this.verifyUserCanVote({ catId, userId, role, cat_type_id });
+
       // Using QueryBuilder to directly insert into the cat_vote table
       await this.voteRepository.insert({
         cat: { id: catId },
@@ -147,7 +177,7 @@ export class CatsService {
       });
 
       // Assuming you want to return the updated cat information
-      return this.getById({ userId, catId }); // Make sure getById method is implemented to return a CatDTO or similar
+      return this.getById({ userId, catId, cat_type_id, role }); // Make sure getById method is implemented to return a CatDTO or similar
     } catch (error) {
       Logger.error('Error adding vote:', error.message);
       throw new BadRequestException(
@@ -159,7 +189,11 @@ export class CatsService {
   async removeVoteForCat({
     catId,
     userId,
-  }: IVoteForCatParams): Promise<CatDTO | null> {
+    role,
+    cat_type_id,
+  }: IUserParams & IVoteForCatParams): Promise<CatDTO | null> {
+    this.verifyUserCanVote({ catId, userId, role, cat_type_id });
+
     const voteExists = await this.voteRepository.findOneBy({
       cat: { id: catId },
       user: { id: userId },
@@ -170,12 +204,45 @@ export class CatsService {
       );
     }
     await this.voteRepository.remove(voteExists);
-    return this.getById({ userId, catId });
+    return this.getById({ userId, catId, role, cat_type_id });
   }
 
-  async getCatsLikedByUser(userId: string): Promise<CatDTO[]> {
+  /**
+   * Verifies that a user can vote for a cat, based on the user's role and the cat's type.
+   * @param {IUserParams & IVoteForCatParams} { catId, userId, role, cat_type_id } - The cat ID, user ID, user role, and cat type.
+   * @returns {Promise<void>} - A promise that resolves if the user can vote, or throws an error if not.
+   * @throws {BadRequestException} If the user cannot vote for the cat.
+   */
+  private async verifyUserCanVote({
+    catId,
+    userId,
+    role,
+    cat_type_id,
+  }: IUserParams & IVoteForCatParams) {
+    if (role === Role.USER) {
+      const cat = await this.catRepository.findOneBy({
+        id: catId,
+        // @ts-ignore
+        cat_type_id: cat_type_id,
+      });
+      if (!cat) {
+        throw new BadRequestException('Cat not found or not user type.');
+      }
+    }
+  }
+
+  async getCatsLikedByUser({
+    userId,
+    role,
+    cat_type_id,
+  }: IUserParams & Omit<IVoteForCatParams, 'catId'>): Promise<CatDTO[]> {
+    const whereOptions = { user: { id: userId } };
+    if (role === Role.USER) {
+      whereOptions['cat'] = { cat_type_id };
+    }
+
     const votes = await this.voteRepository.find({
-      where: { user: { id: userId } },
+      where: whereOptions,
       relations: ['cat'],
     });
 

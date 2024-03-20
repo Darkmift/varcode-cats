@@ -18,7 +18,7 @@ export class CatDTO implements ICat {
     this.image_url = cat.image_url;
     this.likeCount = cat.likes as unknown as number;
     this.likedByUser = !!cat.likedByUser;
-    this.cat_type = cat.cat_type;
+    this.cat_type_id = cat.cat_type_id;
   }
 
   @ApiProperty({
@@ -100,9 +100,9 @@ export class CatDTO implements ICat {
   // add cat_type
   @ApiProperty({
     description: 'The type of the cat',
-    example: '1',
+    example: 'uuid',
   })
-  cat_type: CatVariant;
+  cat_type_id: CatVariant;
 }
 
 export class PaginationParamsDTO implements IPaginationParams {
